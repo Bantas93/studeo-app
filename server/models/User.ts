@@ -6,6 +6,7 @@ import {
 import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
 import { ObjectId } from "mongodb";
+import { hashPassword } from "../helpers/bcrypt";
 
 export interface IUser extends IMongoloquentSchema, IMongoloquentTimestamps {
   username: string;
@@ -88,6 +89,9 @@ class User extends Model<IUser> {
   static async createUser(payload: UserInput) {
     const validPayload = User.validatePayload(payload, true) as UserInput;
     await User.checkDuplicate(validPayload);
+
+    validPayload.password = hashPassword(validPayload.password);
+
     const checkUser = await User.create(validPayload);
     const { password, ...user } = checkUser as IUser & { password?: string };
 
