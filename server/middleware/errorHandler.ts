@@ -1,9 +1,15 @@
 import { NextFunction, Request, Response } from "express";
+import { ZodError } from "zod";
 
-type ErrorPayload = {
-  message: string;
-  status?: number;
-};
+export class AppError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode = 500) {
+    super(message);
+    this.name = "AppError";
+    this.statusCode = statusCode;
+  }
+}
 
 export const errorHandler = (
   err: unknown,
@@ -11,38 +17,24 @@ export const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  let status = 500;
-  let message = "Internal Server Error";
-
-  if (err && typeof err === "object" && "message" in err) {
-    const error = err as ErrorPayload;
-
-    switch (error.status) {
-      case 400:
-        status = 400;
-        break;
-      case 401:
-        status = 401;
-        break;
-      case 403:
-        status = 403;
-        break;
-      case 404:
-        status = 404;
-        break;
-      case 409:
-        status = 409;
-        break;
-      default:
-        status = 500;
-        break;
-    }
-
-    message = error.message;
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({ success: false, message: err.message });
+    return;
   }
 
-  res.status(status).json({
-    success: false,
-    message,
-  });
+  if (err instanceof ZodError) {
+    const message = err.issues[0]?.message || "Validasi gagal";
+    res.status(400).json({ success: false, message });
+    return;
+  }
+
+  if (err && typeof err === "object" && "message" in err) {
+    const error = err as { message: string; status?: number };
+    res
+      .status(error.status ?? 500)
+      .json({ success: false, message: error.message });
+    return;
+  }
+
+  res.status(500).json({ success: false, message: "Internal Server Error" });
 };
