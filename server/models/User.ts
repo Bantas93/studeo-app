@@ -2,28 +2,51 @@ import {
   Model,
   IMongoloquentSchema,
   IMongoloquentTimestamps,
-  DB,
 } from "mongoloquent";
-import { server } from "../config/dns";
-server();
 
-interface IUser extends IMongoloquentSchema, IMongoloquentTimestamps {
+export interface IUser extends IMongoloquentSchema, IMongoloquentTimestamps {
   username: string;
   email: string;
   password: string;
-  avatarUrl: string;
-  isOnline: boolean;
+  avatarUrl?: string;
+  isOnline?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export default class User extends Model<IUser> {
-  static async addUser() {
-    await DB.collection<IUser>("users").insert({
-      username: "johndoe",
-      email: "john@mail.com",
-      password: "password",
-      avatarUrl: "https://cdn-icons-png.magnific.com/512/3135/3135715.png",
-      isOnline: true,
-    });
-  }
+type UserInput = {
+  username: string;
+  email: string;
+  password: string;
+  avatarUrl?: string;
+  isOnline?: boolean;
+};
+
+type UserUpdateInput = Partial<UserInput>;
+
+class User extends Model<IUser> {
   public static $schema: IUser;
+  protected $collection: string = "users";
+
+  static async getAllUsers() {
+    return User.all();
+  }
+
+  static async getUserById(id: string) {
+    return User.find(id);
+  }
+
+  static async createUser(payload: UserInput) {
+    return User.create(payload);
+  }
+
+  static async updateUser(id: string, payload: UserUpdateInput) {
+    return User.where("_id", id).update(payload);
+  }
+
+  static async deleteUser(id: string) {
+    return User.where("_id", id).delete();
+  }
 }
+
+export default User;
