@@ -4,6 +4,7 @@ import MainLayout from "./layouts/MainLayout";
 import HompePage from "./pages/HomePage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
+import CreateRoomPage from "./pages/CreateRoomPage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
 
       <Route element={<MainLayout />}>
         <Route path="/homepage" element={<HompePage />} />
+        <Route path="/room/create" element={<CreateRoomPage />} />
       </Route>
     </Routes>
   );
