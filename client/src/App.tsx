@@ -1,14 +1,16 @@
 import { Route, Routes } from "react-router";
-import Login from "./pages/LoginPage";
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
 import HompePage from "./pages/HomePage";
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
 
 function App() {
   return (
     <Routes>
       <Route element={<AuthLayout />}>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Route>
 
       <Route element={<MainLayout />}>
