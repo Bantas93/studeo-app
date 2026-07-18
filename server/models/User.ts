@@ -5,7 +5,6 @@ import {
 } from "mongoloquent";
 import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
-import { ObjectId } from "mongodb";
 import { comparePassword, hashPassword } from "../helpers/bcrypt";
 import { signToken } from "../helpers/jwt";
 
@@ -30,11 +29,11 @@ export type UserInput = {
 export type UserUpdateInput = Partial<UserInput>;
 
 const userCreateSchema = z.object({
-  username: z.string().trim().min(1, "Username tidak boleh kosong"),
-  email: z.email("Format email tidak valid"),
+  username: z.string().trim().min(1),
+  email: z.email(),
   password: z.string().trim().min(5, "Password minimal 5 karakter"),
-  avatarUrl: z.string(),
-  isOnline: z.boolean(),
+  avatarUrl: z.string().optional(),
+  isOnline: z.boolean().optional(),
 });
 
 const userUpdateSchema = userCreateSchema.partial();
@@ -42,33 +41,6 @@ const userUpdateSchema = userCreateSchema.partial();
 class User extends Model<IUser> {
   public static $schema: IUser;
   protected $collection: string = "users";
-
-  private static validatePayload(payload: unknown, isCreate: boolean) {
-    const schema = isCreate ? userCreateSchema : userUpdateSchema;
-    const result = schema.safeParse(payload);
-
-    if (!result.success) {
-      const message = result.error.issues[0]?.message || "Validasi gagal";
-      throw new AppError(message, 400);
-    }
-
-    return result.data;
-  }
-
-  private static async checkDuplicate(payload: UserInput) {
-    const username = payload.username.trim().toLowerCase();
-    const email = payload.email.trim().toLowerCase();
-
-    const existingUsername = await User.where("username", username).first();
-    if (existingUsername) {
-      throw new AppError("Username sudah digunakan", 400);
-    }
-
-    const existingEmail = await User.where("email", email).first();
-    if (existingEmail) {
-      throw new AppError("Email sudah digunakan", 400);
-    }
-  }
 
   static async getAllUsers() {
     return User.all();
@@ -88,8 +60,29 @@ class User extends Model<IUser> {
   }
 
   static async createUser(payload: UserInput) {
-    const validPayload = User.validatePayload(payload, true) as UserInput;
-    await User.checkDuplicate(validPayload);
+    const result = userCreateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    const validPayload = result.data;
+
+    const existingUsername = await User.where(
+      "username",
+      validPayload.username.trim().toLowerCase(),
+    ).first();
+    if (existingUsername) {
+      throw new AppError("Username sudah digunakan", 400);
+    }
+
+    const existingEmail = await User.where(
+      "email",
+      validPayload.email.trim().toLowerCase(),
+    ).first();
+    if (existingEmail) {
+      throw new AppError("Email sudah digunakan", 400);
+    }
 
     validPayload.password = hashPassword(validPayload.password);
 
@@ -100,10 +93,18 @@ class User extends Model<IUser> {
   }
 
   static async updateUser(id: string, payload: UserUpdateInput) {
-    const validPayload = User.validatePayload(
-      payload,
-      false,
-    ) as UserUpdateInput;
+    const result = userUpdateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    const validPayload = result.data;
+
+    if (validPayload.password) {
+      validPayload.password = hashPassword(validPayload.password);
+    }
+
     return User.where("_id", id).update(validPayload);
   }
 
@@ -113,6 +114,7 @@ class User extends Model<IUser> {
 
   static async login(payload: { username: string; password: string }) {
     const { username, password } = payload;
+
     if (!username || !password) {
       throw new AppError("Username dan password wajib diisi", 400);
     }
@@ -136,8 +138,13 @@ class User extends Model<IUser> {
       username: user.username,
     });
 
+    const { password: _, ...userWithoutPassword } = user as IUser & {
+      password?: string;
+    };
+
     return {
       access_token,
+      user: userWithoutPassword,
     };
   }
 }
