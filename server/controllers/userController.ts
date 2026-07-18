@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/User";
 import { server } from "../config/dns";
+import { AppError } from "../middleware/errorHandler";
 server();
+
 interface IParams {
   id: string;
 }
@@ -65,7 +67,16 @@ class UserController {
 
   static async login(req: Request, res: Response, next: NextFunction) {
     try {
+      const { username, password } = req.body;
+
+      if (!username) {
+        throw new AppError("Username/password wajib diisi", 400);
+      }
+      if (!password) {
+        throw new AppError("Username/password wajib diisi", 400);
+      }
       const result = await User.login(req.body);
+
       res.status(200).json(result);
     } catch (error) {
       next(error);
