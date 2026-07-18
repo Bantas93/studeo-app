@@ -3,7 +3,6 @@ import {
   IMongoloquentSchema,
   IMongoloquentTimestamps,
 } from "mongoloquent";
-import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
 
 export interface ISubject extends IMongoloquentSchema, IMongoloquentTimestamps {
@@ -14,11 +13,6 @@ export interface ISubject extends IMongoloquentSchema, IMongoloquentTimestamps {
 
 export type SubjectInput = { name: string };
 export type SubjectUpdateInput = Partial<SubjectInput>;
-
-const subjectCreateSchema = z.object({
-  name: z.string().trim().min(1, "Nama subject tidak boleh kosong"),
-});
-const subjectUpdateSchema = subjectCreateSchema.partial();
 
 class Subject extends Model<ISubject> {
   public static $schema: ISubject;
@@ -42,25 +36,28 @@ class Subject extends Model<ISubject> {
     return subject;
   }
 
-  static async createSubject(payload: SubjectInput) {
-    const result = subjectCreateSchema.safeParse(payload);
-    if (!result.success) {
-      const message = result.error.issues[0]?.message || "Validasi gagal";
-      throw new AppError(message, 400);
+  static async createSubject(name: string) {
+    if (!name || !name.trim()) {
+      throw new AppError("Nama subject tidak boleh kosong", 400);
     }
 
-    return Subject.create(result.data);
+    const normalizedName = name.trim().toLowerCase();
+
+    const existingSubject = await Subject.where("name", normalizedName).first();
+    if (existingSubject) {
+      throw new AppError("Subject sudah ada", 400);
+    }
+
+    return Subject.create({ name: normalizedName });
   }
 
   static async updateSubject(id: string, payload: SubjectUpdateInput) {
-    const result = subjectUpdateSchema.safeParse(payload);
-    if (!result.success) {
-      const message = result.error.issues[0]?.message || "Validasi gagal";
-      throw new AppError(message, 400);
+    if (payload.name !== undefined && (!payload.name || !payload.name.trim())) {
+      throw new AppError("Nama subject tidak boleh kosong", 400);
     }
 
     await Subject.getSubjectById(id);
-    return Subject.where("_id", id).update(result.data);
+    return Subject.where("_id", id).update(payload);
   }
 
   static async deleteSubject(id: string) {
