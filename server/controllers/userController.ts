@@ -32,6 +32,20 @@ class UserController {
 
   static async createUser(req: Request, res: Response, next: NextFunction) {
     try {
+      const { username, email, password } = req.body;
+
+      if (!username) {
+        throw new AppError("Username wajib diisi", 400);
+      }
+
+      if (!email) {
+        throw new AppError("Email wajib diisi", 400);
+      }
+
+      if (!password) {
+        throw new AppError("Password wajib diisi", 400);
+      }
+
       const user = await User.createUser(req.body);
       res.status(201).json(user);
     } catch (error) {
