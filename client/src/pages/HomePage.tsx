@@ -8,6 +8,9 @@ export default function HompePage() {
           <Link to={"/room/create"} className="btn">
             Create Room
           </Link>
+          <Link to={"/subject/create"} className="btn">
+            Create Subject
+          </Link>
         </div>
 
         <div className="card w-96 bg-base-100 card-md shadow-sm">
