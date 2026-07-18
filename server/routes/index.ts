@@ -5,6 +5,7 @@ import MemberRouter from "./members";
 import ScheduleRouter from "./schedules";
 import SubjectRouter from "./subjects";
 import TodoRouter from "./todos";
+import LivekitRouter from "./livekit";
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use("/members", MemberRouter);
 router.use("/schedules", ScheduleRouter);
 router.use("/subjects", SubjectRouter);
 router.use("/todos", TodoRouter);
+router.use("/livekit", LivekitRouter);
 
 export default router;
