@@ -6,7 +6,8 @@ import {
 import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
 import { ObjectId } from "mongodb";
-import { hashPassword } from "../helpers/bcrypt";
+import { comparePassword, hashPassword } from "../helpers/bcrypt";
+import { signToken } from "../helpers/jwt";
 
 export interface IUser extends IMongoloquentSchema, IMongoloquentTimestamps {
   username: string;
@@ -108,6 +109,46 @@ class User extends Model<IUser> {
 
   static async deleteUser(id: string) {
     return User.where("_id", id).delete();
+  }
+
+  static async login(payload: { username: string; password: string }) {
+    // 1. Validasi input tidak kosong
+    const { username, password } = payload;
+    if (!username || !password) {
+      throw new AppError("Username dan password wajib diisi", 400);
+    }
+
+    // 2. Cari user di database
+    const user = await User.where(
+      "username",
+      username.trim().toLowerCase(),
+    ).first();
+
+    if (!user) {
+      throw new AppError("Username atau password salah", 401);
+    }
+
+    // 3. Compare password
+    const isMatch = comparePassword(password, user.password);
+    if (!isMatch) {
+      throw new AppError("Username atau password salah", 401);
+    }
+
+    // 4. Buat token (payload: _id + username)
+    const access_token = signToken({
+      _id: user._id,
+      username: user.username,
+    });
+
+    // 5. Kembalikan token + data user (tanpa password)
+    const { password: _, ...userWithoutPassword } = user as IUser & {
+      password?: string;
+    };
+
+    return {
+      access_token,
+      user: userWithoutPassword,
+    };
   }
 }
 
