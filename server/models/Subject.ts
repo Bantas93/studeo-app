@@ -24,17 +24,6 @@ class Subject extends Model<ISubject> {
   public static $schema: ISubject;
   protected $collection: string = "subjects";
 
-  private static validatePayload(payload: unknown, isCreate: boolean) {
-    const schema = isCreate ? subjectCreateSchema : subjectUpdateSchema;
-    const result = schema.safeParse(payload);
-    if (!result.success)
-      throw new AppError(
-        result.error.issues[0]?.message || "Validasi gagal",
-        400,
-      );
-    return result.data;
-  }
-
   static async getSubjects() {
     return Subject.all();
   }
@@ -54,21 +43,28 @@ class Subject extends Model<ISubject> {
   }
 
   static async createSubject(payload: SubjectInput) {
-    const valid = Subject.validatePayload(payload, true) as SubjectInput;
-    return Subject.create(valid);
+    const result = subjectCreateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    return Subject.create(result.data);
   }
 
   static async updateSubject(id: string, payload: SubjectUpdateInput) {
-    const valid = Subject.validatePayload(payload, false) as SubjectUpdateInput;
+    const result = subjectUpdateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
     await Subject.getSubjectById(id);
-    return Subject.where("_id", id).update(valid);
+    return Subject.where("_id", id).update(result.data);
   }
 
   static async deleteSubject(id: string) {
-    const data = await Subject.getSubjectById(id);
-    if (!data) {
-      throw new AppError("Subject tidak ditemukan", 404);
-    }
+    await Subject.getSubjectById(id);
     return Subject.where("_id", id).delete();
   }
 }

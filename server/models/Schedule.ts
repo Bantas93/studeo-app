@@ -29,31 +29,11 @@ const scheduleCreateSchema = z.object({
     .pipe(z.coerce.date()),
 });
 
-const scheduleUpdateSchema = z.object({
-  title: z.string().trim().min(1, "Judul jadwal tidak boleh kosong").optional(),
-  meetingTime: z
-    .string()
-    .datetime({ message: "Format meetingTime harus ISO Date String" })
-    .pipe(z.coerce.date())
-    .optional(),
-});
+const scheduleUpdateSchema = scheduleCreateSchema.partial();
 
 class Schedule extends Model<ISchedule> {
   public static $schema: ISchedule;
   protected $collection: string = "schedules";
-
-  private static validatePayload(payload: unknown, isCreate: boolean) {
-    const schema = isCreate ? scheduleCreateSchema : scheduleUpdateSchema;
-    const result = schema.safeParse(payload);
-
-    if (!result.success) {
-      throw new AppError(
-        result.error.issues[0]?.message || "Validasi gagal",
-        400,
-      );
-    }
-    return result.data;
-  }
 
   static async getSchedules() {
     return Schedule.all();
@@ -74,25 +54,29 @@ class Schedule extends Model<ISchedule> {
     return schedule;
   }
 
-  static async createSchedule(payload: any) {
-    const data = Schedule.validatePayload(payload, true) as ScheduleInput;
-    return Schedule.create(data);
+  static async createSchedule(payload: ScheduleInput) {
+    const result = scheduleCreateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    return Schedule.create(result.data);
   }
 
-  static async updateSchedule(id: string, payload: any) {
-    const valid = Schedule.validatePayload(
-      payload,
-      false,
-    ) as ScheduleUpdateInput;
+  static async updateSchedule(id: string, payload: ScheduleUpdateInput) {
+    const result = scheduleUpdateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
     await Schedule.getScheduleById(id);
-    return Schedule.where("_id", id).update(valid);
+    return Schedule.where("_id", id).update(result.data);
   }
 
   static async deleteSchedule(id: string) {
-    const data = await Schedule.getScheduleById(id);
-    if (!data) {
-      throw new AppError("Jadwal tidak ditemukan", 404);
-    }
+    await Schedule.getScheduleById(id);
     return Schedule.where("_id", id).delete();
   }
 }

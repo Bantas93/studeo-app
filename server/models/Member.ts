@@ -29,17 +29,6 @@ class Member extends Model<IMember> {
   public static $schema: IMember;
   protected $collection: string = "members";
 
-  private static validatePayload(payload: unknown, isCreate: boolean) {
-    const schema = isCreate ? memberCreateSchema : memberUpdateSchema;
-    const result = schema.safeParse(payload);
-    if (!result.success)
-      throw new AppError(
-        result.error.issues[0]?.message || "Validasi gagal",
-        400,
-      );
-    return result.data;
-  }
-
   static async getMembers() {
     return Member.all();
   }
@@ -62,21 +51,28 @@ class Member extends Model<IMember> {
   }
 
   static async createMember(payload: MemberInput) {
-    const valid = Member.validatePayload(payload, true) as MemberInput;
-    return Member.create(valid);
+    const result = memberCreateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    return Member.create(result.data);
   }
 
   static async updateMember(id: string, payload: MemberUpdateInput) {
-    const valid = Member.validatePayload(payload, false) as MemberUpdateInput;
+    const result = memberUpdateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
     await Member.getMemberById(id);
-    return Member.where("_id", id).update(valid);
+    return Member.where("_id", id).update(result.data);
   }
 
   static async deleteMember(id: string) {
-    const data = await Member.getMemberById(id);
-    if (!data) {
-      throw new AppError("Member tidak ditemukan", 404);
-    }
+    await Member.getMemberById(id);
     return Member.where("_id", id).delete();
   }
 }

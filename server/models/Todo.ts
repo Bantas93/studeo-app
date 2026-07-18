@@ -24,17 +24,6 @@ class Todo extends Model<ITodo> {
   public static $schema: ITodo;
   protected $collection: string = "todos";
 
-  private static validatePayload(payload: unknown, isCreate: boolean) {
-    const schema = isCreate ? todoCreateSchema : todoUpdateSchema;
-    const result = schema.safeParse(payload);
-    if (!result.success)
-      throw new AppError(
-        result.error.issues[0]?.message || "Validasi gagal",
-        400,
-      );
-    return result.data;
-  }
-
   static async getTodos() {
     return Todo.all();
   }
@@ -54,21 +43,28 @@ class Todo extends Model<ITodo> {
   }
 
   static async createTodo(payload: TodoInput) {
-    const valid = Todo.validatePayload(payload, true) as TodoInput;
-    return Todo.create(valid);
+    const result = todoCreateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    return Todo.create(result.data);
   }
 
   static async updateTodo(id: string, payload: TodoUpdateInput) {
-    const valid = Todo.validatePayload(payload, false) as TodoUpdateInput;
+    const result = todoUpdateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
     await Todo.getTodoById(id);
-    return Todo.where("_id", id).update(valid);
+    return Todo.where("_id", id).update(result.data);
   }
 
   static async deleteTodo(id: string) {
-    const data = await Todo.getTodoById(id);
-    if (!data) {
-      throw new AppError("Todo tidak ditemukan", 404);
-    }
+    await Todo.getTodoById(id);
     return Todo.where("_id", id).delete();
   }
 }

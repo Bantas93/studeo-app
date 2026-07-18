@@ -25,10 +25,10 @@ export type RoomInput = {
 export type RoomUpdateInput = Partial<RoomInput>;
 
 const roomCreateSchema = z.object({
-  name: z.string().trim().min(1, "Name tidak boleh kosong"),
-  roomType: z.string().trim().min(1, "Room Type tidak boleh kosong"),
-  maxParticipants: z.number().int().min(1, "Maksimal partisipan minimal 1"),
-  createdBy: z.string(),
+  name: z.string().trim().min(1, "Topic tidak boleh kosong"),
+  roomType: z.string().trim().min(1, "Type tidak boleh kosong"),
+  maxParticipants: z.number().int().min(10, "Minimal partisipan 10"),
+  createdBy: z.string().trim().min(1, "createdBy tidak boleh kosong"),
 });
 
 const roomUpdateSchema = roomCreateSchema.partial();
@@ -36,27 +36,6 @@ const roomUpdateSchema = roomCreateSchema.partial();
 class Room extends Model<IRoom> {
   public static $schema: IRoom;
   protected $collection: string = "rooms";
-
-  private static validatePayload(payload: unknown, isCreate: boolean) {
-    const schema = isCreate ? roomCreateSchema : roomUpdateSchema;
-    const result = schema.safeParse(payload);
-
-    if (!result.success) {
-      const message = result.error.issues[0]?.message || "Validasi gagal";
-      throw new AppError(message, 400);
-    }
-
-    return result.data;
-  }
-
-  private static async checkDuplicate(payload: RoomInput) {
-    const name = payload.name.trim().toLowerCase();
-
-    const existingRoom = await Room.where("name", name).first();
-    if (existingRoom) {
-      throw new AppError("Nama room sudah digunakan", 400);
-    }
-  }
 
   static async getAllRooms() {
     return Room.all();
@@ -81,19 +60,34 @@ class Room extends Model<IRoom> {
   }
 
   static async createRoom(payload: RoomInput) {
-    const validPayload = Room.validatePayload(payload, true) as RoomInput;
-    await Room.checkDuplicate(validPayload);
+    const result = roomCreateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    const validPayload = result.data;
+
+    const existingRoom = await Room.where(
+      "name",
+      validPayload.name.trim().toLowerCase(),
+    ).first();
+    if (existingRoom) {
+      throw new AppError("Nama room sudah digunakan", 400);
+    }
 
     const checkRoom = await Room.create(validPayload);
     return checkRoom;
   }
 
   static async updateRoom(id: string, payload: RoomUpdateInput) {
-    const validPayload = Room.validatePayload(
-      payload,
-      false,
-    ) as RoomUpdateInput;
-    return Room.where("_id", id).update(validPayload);
+    const result = roomUpdateSchema.safeParse(payload);
+    if (!result.success) {
+      const message = result.error.issues[0]?.message || "Validasi gagal";
+      throw new AppError(message, 400);
+    }
+
+    return Room.where("_id", id).update(result.data);
   }
 
   static async deleteRoom(id: string) {
