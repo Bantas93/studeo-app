@@ -40,7 +40,8 @@ class SubjectController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const data = await Subject.createSubject(req.body);
+      const { name } = req.body;
+      const data = await Subject.createSubject(name);
       res.status(201).json(data);
     } catch (error) {
       next(error);
