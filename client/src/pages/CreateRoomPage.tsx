@@ -1,0 +1,134 @@
+import axios, { AxiosError } from "axios";
+import { useEffect, useState } from "react";
+import { Link } from "react-router";
+import { useNavigate } from "react-router";
+import Swal from "sweetalert2";
+
+interface Subject {
+  _id: string;
+  name: string;
+}
+
+export default function CreateRoomPage() {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [roomType, setRoomType] = useState("");
+  const [maxParticipants, setMaxParticipants] = useState("");
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [error, setError] = useState("");
+
+  const fetchData = async () => {
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/subjects`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        },
+      );
+
+      setSubjects(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSubmit = async (e: React.SubmitEvent) => {
+    e.preventDefault();
+
+    const payload = {
+      name,
+      roomType,
+      maxParticipants: Number(maxParticipants),
+      selectedSubject,
+    };
+
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/rooms`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+
+      Swal.fire({
+        title: "Create Room Succesful",
+        icon: "success",
+      });
+
+      navigate("/homepage");
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      setError(msg);
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <form onSubmit={handleSubmit}>
+        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+          <legend className="fieldset-legend">Create Room</legend>
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          <label className="label">Topic</label>
+          <input
+            type="text"
+            className="input"
+            placeholder="topic name"
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <label className="label">type</label>
+          <select
+            defaultValue={""}
+            className="select appearance-none"
+            onChange={(e) => setRoomType(e.target.value)}
+          >
+            <option value={""} disabled>
+              Select type
+            </option>
+            <option value={"public"}>Public</option>
+            <option value={"private"}>Private</option>
+          </select>
+
+          <label className="label">subject</label>
+          <select
+            defaultValue={""}
+            className="select appearance-none"
+            onChange={(e) => setSelectedSubject(e.target.value)}
+          >
+            <option value={""} disabled>
+              Select subjects
+            </option>
+            {subjects.map((subj) => (
+              <option key={subj._id} value={subj.name}>
+                {subj.name.toUpperCase()}
+              </option>
+            ))}
+          </select>
+
+          <label className="label">Max Participants</label>
+          <input
+            type="number"
+            className="input"
+            onChange={(e) => setMaxParticipants(e.target.value)}
+          />
+
+          <button type="submit" className="btn btn-neutral mt-4">
+            Create room
+          </button>
+          <Link to={"/homepage"} className="btn mt-4">
+            back
+          </Link>
+        </fieldset>
+      </form>
+    </div>
+  );
+}

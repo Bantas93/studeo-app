@@ -19,6 +19,7 @@ export type RoomInput = {
   name: string;
   roomType: string;
   maxParticipants: number;
+  subject: string;
   createdBy: string;
 };
 
@@ -28,6 +29,7 @@ const roomCreateSchema = z.object({
   name: z.string().trim().min(1, "Topic tidak boleh kosong"),
   roomType: z.string().trim().min(1, "Type tidak boleh kosong"),
   maxParticipants: z.number().int().min(10, "Minimal partisipan 10"),
+  subject: z.string().trim().min(1, "Subject tidak boleh kosong"),
   createdBy: z.string().trim().min(1, "createdBy tidak boleh kosong"),
 });
 
@@ -61,6 +63,7 @@ class Room extends Model<IRoom> {
 
   static async createRoom(payload: RoomInput) {
     const result = roomCreateSchema.safeParse(payload);
+
     if (!result.success) {
       const message = result.error.issues[0]?.message || "Validasi gagal";
       throw new AppError(message, 400);
