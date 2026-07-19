@@ -8,6 +8,7 @@ import CreateRoomPage from "./pages/CreateRoomPage";
 import CreateSubjectPage from "./pages/CreateSubjectPage";
 import ChatRoomPage from "./pages/ChatRoomPage";
 import CallingPage from "./pages/CallingPage";
+import CreateTodoPage from "./pages/CreateTodoPage";
 
 function App() {
   return (
@@ -20,6 +21,11 @@ function App() {
       <Route element={<MainLayout />}>
         <Route path="/homepage" element={<HompePage />} />
         <Route path="/room/create" element={<CreateRoomPage />} />
+        <Route path="/room/:id/create/todo" element={<CreateTodoPage />} />
+        <Route
+          path="/room/:id/edit/todo/:todoId"
+          element={<CreateTodoPage />}
+        />
         <Route path="/subject/create" element={<CreateSubjectPage />} />
         <Route path="/room/:id" element={<ChatRoomPage />} />
         <Route path="/room/calling/:id" element={<CallingPage />} />
