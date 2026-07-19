@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import Swal from "sweetalert2";
 
 interface IRoom {
   _id: string;
@@ -25,7 +26,7 @@ export default function HompePage() {
           },
         },
       );
-
+      console.log(data);
       setRooms(data);
     } catch (error) {
       console.log(error);
@@ -35,6 +36,32 @@ export default function HompePage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleDeleteRoom = async (_id: string, name: string) => {
+    try {
+      const result = await Swal.fire({
+        title: `Delete "${name}" rooms?`,
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ya",
+      });
+
+      if (result.isConfirmed) {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/rooms/${_id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+        fetchData();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="min-h-screen p-6">
@@ -70,7 +97,18 @@ export default function HompePage() {
                   <div className="card-body">
                     <h2 className="card-title">Topic : {room.name}</h2>
                     <p>Mata pelajaran : {room.subject}</p>
+                    <p
+                      className={`badge badge-soft ${room.roomType === "public" ? `badge-primary` : `badge-warning`}`}
+                    >
+                      {room.roomType}
+                    </p>
                     <div className="justify-end card-actions">
+                      <button
+                        className="btn btn-error text-white"
+                        onClick={() => handleDeleteRoom(room._id, room.name)}
+                      >
+                        Delete
+                      </button>
                       <Link
                         to={`/room/${room._id.toString()}`}
                         className="btn btn-primary"
