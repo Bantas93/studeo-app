@@ -1,14 +1,19 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 
+interface ICreator {
+  username: string;
+  email: string;
+}
 interface IRoom {
   _id: string;
   name: string;
   subject: string;
   roomType: string;
   maxParticipants: number;
+  creator: ICreator;
 }
 
 export default function HompePage() {
@@ -26,7 +31,7 @@ export default function HompePage() {
           },
         },
       );
-      console.log(data);
+
       setRooms(data);
     } catch (error) {
       console.log(error);
@@ -55,11 +60,19 @@ export default function HompePage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
+          params: { _id },
         });
         fetchData();
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
+
+      Swal.fire({
+        title: msg,
+        icon: "error",
+      });
     }
   };
 
@@ -95,8 +108,15 @@ export default function HompePage() {
                   key={room._id.toString()}
                 >
                   <div className="card-body">
-                    <h2 className="card-title">Topic : {room.name}</h2>
-                    <p>Mata pelajaran : {room.subject}</p>
+                    <div className="card-title justify-between">
+                      <div>
+                        Topic : <span>{room.name.toUpperCase()}</span>
+                      </div>
+                      <div className="badge-xs -me-4 -mt-12">
+                        by : {room.creator.username}
+                      </div>
+                    </div>
+                    <p className="-mt-3">Mata pelajaran : {room.subject}</p>
                     <p
                       className={`badge badge-soft ${room.roomType === "public" ? `badge-primary` : `badge-warning`}`}
                     >

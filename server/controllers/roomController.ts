@@ -66,13 +66,15 @@ class RoomController {
     }
   }
 
-  static async deleteRoom(
-    req: Request<IParams>,
-    res: Response,
-    next: NextFunction,
-  ) {
+  static async deleteRoom(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await Room.deleteRoom(req.params.id);
+      const payload = {
+        _id: req.params.id as string,
+        createdBy: String(req.user!.id),
+      };
+
+      await Room.deleteRoom(payload);
+
       res.status(200).json({ message: "Room has been deleted succesfully" });
     } catch (error) {
       next(error);

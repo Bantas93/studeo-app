@@ -5,6 +5,8 @@ import {
 } from "mongoloquent";
 import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
+import { ObjectId } from "mongodb";
+import User from "./User";
 
 export interface IRoom extends IMongoloquentSchema, IMongoloquentTimestamps {
   name: string;
@@ -20,6 +22,11 @@ export type RoomInput = {
   roomType: string;
   maxParticipants: number;
   subject: string;
+  createdBy: string;
+};
+
+type DeleteRoomPayload = {
+  _id: String;
   createdBy: string;
 };
 
@@ -40,7 +47,25 @@ class Room extends Model<IRoom> {
   protected $collection: string = "rooms";
 
   static async getAllRooms() {
-    return Room.all();
+    const rooms = await Room.all();
+
+    const roomsWithCreator = await Promise.all(
+      rooms.map(async (room) => {
+        const user = await User.find(room.createdBy);
+        return {
+          ...room,
+          creator: user
+            ? {
+                username: user.username,
+                email: user.email,
+                avatarUrl: user.avatarUrl,
+              }
+            : null,
+        };
+      }),
+    );
+
+    return roomsWithCreator;
   }
 
   static async getRoomById(id: string) {
@@ -93,12 +118,17 @@ class Room extends Model<IRoom> {
     return Room.where("_id", id).update(result.data);
   }
 
-  static async deleteRoom(id: string) {
-    const findRoom = await Room.find(id);
+  static async deleteRoom(payload: DeleteRoomPayload) {
+    const { _id, createdBy } = payload;
+    const findRoom = await Room.where("createdBy", createdBy)
+      .where("_id", _id)
+      .first();
+
     if (!findRoom) {
-      throw new AppError("Room tidak ditemukan", 404);
+      throw new AppError("Anda bukan pemilik room", 401);
     }
-    return Room.where("_id", id).delete();
+
+    return Room.where("_id", _id).delete();
   }
 }
 
