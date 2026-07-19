@@ -8,7 +8,6 @@ import {
   RemoteParticipant,
 } from "@livekit/rtc-node";
 import { AccessToken } from "livekit-server-sdk";
-import { askAI } from "../config/openAi";
 import { encodeWav } from "../helpers/encodeWav";
 
 const room = new Room();
@@ -17,10 +16,11 @@ interface TimestampBuffer {
   timestamp: number,
   buffer: Buffer,
   participant: string,
+  roomId: string | undefined
 }
 
 const audioBuffers: Record<string, Buffer[]> = {};
-const audioBuffers2: Array<TimestampBuffer> = [];
+const audioBuffers2: Record<string, TimestampBuffer[]> = {};
 
 interface GroqTranscriptionResponse {
   text: string;
@@ -73,7 +73,6 @@ room.on(
 
     const audioStream = new AudioStream(track, 16000, 1);
 
-    // todo "await" make UI loading when back to the room
     await (async () => {
       for await (const frame of audioStream) {
         // const chunks = audioBuffers[participant.identity];
@@ -85,9 +84,16 @@ room.on(
           timestamp: Date.now(),
           buffer: Buffer.from(frame.data.buffer),
           participant: participant.identity,
+          roomId: room.name
         }
-        console.log(`${timestampBuffer.timestamp} - ${timestampBuffer.participant} - BUFFER LENGTH: ${timestampBuffer.buffer.byteLength}`);
-        audioBuffers2.push(timestampBuffer);
+        console.log(`${timestampBuffer.timestamp} - ${timestampBuffer.roomId} - ${timestampBuffer.participant} - BUFFER LENGTH: ${timestampBuffer.buffer.byteLength}`);
+
+        if (!room.name) {
+          throw new Error("Room name is undefined");
+        }
+
+        audioBuffers2[room.name] ??= [];
+        audioBuffers2[room.name].push(timestampBuffer);
       }
     })();
   },
@@ -97,13 +103,19 @@ room.on(
   RoomEvent.ParticipantDisconnected,
   async (participant: RemoteParticipant) => {
     console.log(`${new Date().toLocaleString().split(" ")[1]} - Participant: ${participant.identity} has disconnected.`)
-    console.log(room.remoteParticipants);
 
     if (room.remoteParticipants.size === 0) {
-      console.log("TOTAL DATA TIMESTAMP BUFFER: ", audioBuffers2.length)
+      if (!room.name) {
+        throw new Error("Room name is undefined");
+      }
 
-      const buffer = audioBuffers2.sort((a, b) => a.timestamp - b.timestamp)
+      console.log("TOTAL DATA TIMESTAMP BUFFER: ", audioBuffers2[room.name]);
+
+      const buffer = audioBuffers2[room.name]
+        .sort((a, b) => a.timestamp - b.timestamp)
         .map(buffer => buffer.buffer);
+
+      audioBuffers2[room.name] = [];
 
       const pcmBuffer = Buffer.concat(buffer);
       const wavBuffer = encodeWav(pcmBuffer);
