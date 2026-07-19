@@ -93,24 +93,24 @@ room.on(
     try {
       const text = await transcribeWithGroq(wavBuffer);
       const aiResponse = await askAI(text);
-      await fetch(
-        `http://localhost:${process.env.PORT || 3000}/messages/ai-result`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            roomName: room.name,
-            userId: participant.identity,
-            transcript: text,
-            aiResponse: aiResponse,
-          }),
-        },
-      );
+
+      console.log("\n═══════════════════════════════════════");
+      console.log(`🎤 Transkrip dari ${participant.identity}:`);
+      console.log(`   "${text}"`);
+      console.log(`🤖 AI Response:`);
+      console.log(`   "${aiResponse}"`);
+      console.log("═══════════════════════════════════════\n");
     } catch (err) {
       console.error("Gagal transkrip:", (err as Error).message);
     }
   },
 );
+
+// 🔍 Saat room disconnect (semua participant sudah leave)
+room.on(RoomEvent.Disconnected, () => {
+  console.log("\n🔚 Room telah kosong — semua participant sudah leave.");
+  console.log("   Hasil transkrip sudah dicetak di atas.\n");
+});
 
 async function main() {
   const roomName = process.argv[2] || "Test-Room";

@@ -12,7 +12,7 @@ export function ensureBotRunning(roomName: string): void {
   const botProcess = spawn(
     "npx",
     ["tsx", path.join(__dirname, "../services/record-text.ts"), roomName],
-    { stdio: "inherit" },
+    { stdio: "inherit", shell: true },
   );
 
   runningBots.set(roomName, botProcess);
