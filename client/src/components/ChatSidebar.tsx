@@ -60,7 +60,7 @@ export default function ChatSidebar({ roomId: _roomId }: IProps) {
     }
   };
   return (
-    <div className="w-80 h-min-screen bg-base-200 p-4 border-l border-base-300 flex flex-col gap-4">
+    <div className="w-80 min-h-screen bg-base-200 p-4 border-l border-base-300 flex flex-col gap-4">
       {/* Judul Panel */}
       <h3 className="font-bold text-lg border-b border-base-300 pb-2 text-base-content">
         Room Information
@@ -86,37 +86,38 @@ export default function ChatSidebar({ roomId: _roomId }: IProps) {
       </div>
 
       {/* Active Members - placeholder */}
-
-      {todos.length > 0 &&
-        todos.map((todo) => {
-          return (
-            <div
-              className="card bg-base-100 shadow-sm border border-base-300 relative"
-              key={String(todo._id)}
-            >
-              <div className="absolute top-1 right-1 flex gap-1">
-                <Link
-                  to={`/room/${_roomId}/edit/todo/${todo._id}`}
-                  className="btn btn-ghost btn-xs text-xs"
-                >
-                  📝
-                </Link>
-                <button
-                  className="btn btn-ghost btn-xs text-xs"
-                  onClick={() => handleDelete(todo._id)}
-                >
-                  ❌
-                </button>
+      <div className="grid gap-2">
+        {todos.length > 0 &&
+          todos.map((todo) => {
+            return (
+              <div
+                className="card bg-base-100 shadow-sm border border-base-300 relative"
+                key={String(todo._id)}
+              >
+                <div className="absolute top-1 right-1 flex gap-1">
+                  <Link
+                    to={`/room/${_roomId}/edit/todo/${todo._id}`}
+                    className="btn btn-ghost btn-xs text-xs"
+                  >
+                    📝
+                  </Link>
+                  <button
+                    className="btn btn-ghost btn-xs text-xs"
+                    onClick={() => handleDelete(todo._id)}
+                  >
+                    ❌
+                  </button>
+                </div>
+                <div className="card-body p-4">
+                  <h2 className="card-title text-sm pr-12">{todo.title}</h2>
+                  <p className="text-xs text-base-content/50 italic mt-2">
+                    {todo.description}
+                  </p>
+                </div>
               </div>
-              <div className="card-body p-4">
-                <h2 className="card-title text-sm pr-12">{todo.title}</h2>
-                <p className="text-xs text-base-content/50 italic mt-2">
-                  {todo.description}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+      </div>
     </div>
   );
 }
