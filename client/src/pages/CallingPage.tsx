@@ -140,18 +140,7 @@ export default function CallingPage() {
         serverUrl={LIVEKIT_URL}
         video={mode === "video"}
         audio={true}
-        // connect={true} // todo turn false if diconnected
         onDisconnected={handleDisconnected}
-        onError={(error) => {
-          console.error(">>> LiveKit error:", error);
-        }}
-        // connectOptions={{
-        //   autoSubscribe: true,
-        //   peerConnectionTimeout: 60,
-        //   maxRetries: 5,
-        //   websocketTimeout: 60,
-        //
-        // }}
         className="h-full flex flex-col"
       >
         {/* Header */}
@@ -176,7 +165,7 @@ export default function CallingPage() {
             controls={{
               microphone: true,
               camera: mode === "video",
-              screenShare: true,
+              screenShare: false,
               leave: true,
             }}
           />

@@ -1,16 +1,20 @@
 import {
-  Room,
-  RoomEvent,
   AudioStream,
-  TrackKind,
+  RemoteParticipant,
   RemoteTrack,
   RemoteTrackPublication,
-  RemoteParticipant,
+  Room,
+  RoomEvent,
+  TrackKind,
 } from "@livekit/rtc-node";
 import { AccessToken } from "livekit-server-sdk";
 import { encodeWav } from "../helpers/encodeWav";
 import { askAI } from "../config/openAi";
+import Message from "../models/Message";
+import User from "../models/User";
+import RoomModel from "../models/Room";
 
+const BOT_NAME = "recorder-bot";
 const room = new Room();
 
 interface RecordedBuffer {
@@ -65,7 +69,6 @@ async function transcribeWithGroq(wavBuffer: Buffer): Promise<string> {
   );
 
   const data: GroqTranscriptionResponse = await response.json();
-  console.log(">>> GROG RESULT", data)
 
   if (!response.ok) {
     console.error("Groq API error:", data);
@@ -231,16 +234,29 @@ room.on(
       console.log("Conversation: ");
       console.log(conversation);
 
-      const prompt = `
-      Rangkum dengan singkat percakapan berikut ini.
-      
-      ${conversation}
-      `.trim();
-      console.log("AI prompt: ");
-      console.log(prompt);
-      const aiResponse = await askAI(prompt);
+      const roomModel = await RoomModel.where("_id", "eq", roomName).first();
+      if (!roomModel) {
+        throw new Error(`Room not found: ${roomName}`);
+      }
+
+      const aiResponse = await askAI({
+        topic: roomModel.name,
+        conversation: conversation,
+      });
+
       console.log("AI response: ");
       console.log(aiResponse);
+
+      const botUser = await User.where("username", "eq", BOT_NAME).first();
+      if (!botUser) {
+        throw new Error(`Bot user not found: ${BOT_NAME}`);
+      }
+
+      await Message.sendMessage({
+        roomId: roomName,
+        content: aiResponse ? aiResponse : "-",
+        userId: String(botUser._id),
+      });
     }
   },
 );
@@ -255,7 +271,6 @@ room.on(RoomEvent.Disconnected, async (reason) => {
 
   console.log(`Room disconnected.`, reason);
   console.log("Room telah kosong — semua participant sudah leave.");
-  console.log("Hasil transkrip sudah dicetak di atas.\n");
 });
 
 async function main() {
@@ -265,7 +280,7 @@ async function main() {
     process.env.LIVEKIT_API_KEY,
     process.env.LIVEKIT_API_SECRET,
     {
-      identity: "recorder-bot",
+      identity: BOT_NAME,
     },
   );
   at.addGrant({ room: roomName, roomJoin: true, canSubscribe: true });
