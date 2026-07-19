@@ -1,41 +1,61 @@
-import { useState } from "react";
-
-interface Message {
-  id: string;
-  sender: string;
-  text: string;
-  isMe: boolean;
-}
+import { useRef, useState, useEffect } from "react";
+import type { IMessage } from "../pages/ChatRoomPage";
 
 interface IProps {
-  id: string;
+  roomId: string;
+  messages: IMessage[];
+  loading: boolean;
+  error: string | null;
+  currentUserId: string;
+  onSendMessage: (content: string) => void;
 }
 
-export default function ChatRoomsList({ id }: IProps) {
-  const [message, setMessage] = useState("");
+function formatTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-  const [messages] = useState<Message[]>([
-    {
-      id: "1",
-      sender: "Budi",
-      text: "Halo semuanya! Selamat datang.",
-      isMe: false,
-    },
-    {
-      id: "2",
-      sender: "Anda",
-      text: "Halo! Room ini siap dipasang Socket.io.",
-      isMe: true,
-    },
-  ]);
+export default function ChatRoomsList({
+  roomId,
+  messages,
+  loading,
+  error,
+  currentUserId,
+  onSendMessage,
+}: IProps) {
+  const [draft, setDraft] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = (e: React.SubmitEvent) => {
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
-
-    console.log(`Kirim pesan ke room ${id} via socket:`, message);
-    setMessage("");
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    onSendMessage(trimmed);
+    setDraft("");
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col flex-1 h-full bg-base-100">
+        <div className="navbar bg-base-200 border-b border-base-300 px-4">
+          <span className="font-bold text-lg text-base-content">
+            Room Chat #{roomId}
+          </span>
+        </div>
+        <div className="flex items-center justify-center flex-1">
+          <span className="loading loading-spinner loading-md" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 h-full bg-base-100">
@@ -43,7 +63,7 @@ export default function ChatRoomsList({ id }: IProps) {
       <div className="navbar bg-base-200 border-b border-base-300 px-4 flex justify-between">
         <div className="flex justify-between w-full">
           <span className="font-bold text-lg text-base-content">
-            Room Chat #{id}
+            Room Chat #{roomId}
           </span>
           <div className="btn">Video/Voice Call</div>
         </div>
@@ -58,35 +78,47 @@ export default function ChatRoomsList({ id }: IProps) {
 
       {/* Area Chat */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`chat ${msg.isMe ? "chat-end" : "chat-start"}`}
-          >
-            <div className="chat-header text-xs opacity-50 mb-1">
-              {msg.sender}
-            </div>
+        {messages.map((msg) => {
+          const isMe = msg.userId === currentUserId;
+
+          return (
             <div
-              className={`chat-bubble ${msg.isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
+              key={msg._id}
+              className={`chat ${isMe ? "chat-end" : "chat-start"}`}
             >
-              {msg.text}
+              <div className="chat-header text-xs opacity-50 mb-1">
+                {msg.username ?? "Unknown"}
+              </div>
+              <div
+                className={`chat-bubble ${isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
+              >
+                {msg.content}
+              </div>
+              <div className="chat-footer opacity-50 text-[10px] mt-1">
+                {formatTime(msg.createdAt)}
+              </div>
             </div>
-            <div className="chat-footer opacity-50 text-[10px] mt-1">12:30</div>
-          </div>
-        ))}
+          );
+        })}
+        <div ref={bottomRef} />
       </div>
 
-      {/* Input Form*/}
+      {/* Error */}
+      {error && (
+        <div className="px-4 py-1 text-sm text-error bg-base-100">{error}</div>
+      )}
+
+      {/* Input Form */}
       <form
-        onSubmit={handleSendMessage}
+        onSubmit={handleSubmit}
         className="p-4 bg-base-200 border-t border-base-300 flex gap-2"
       >
         <input
           type="text"
           placeholder="Tulis pesan di sini..."
           className="input input-bordered flex-1"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
         />
         <button type="submit" className="btn btn-neutral">
           Kirim
