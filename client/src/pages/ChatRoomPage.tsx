@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import axios from "axios";
+import { socket } from "../lib/socket.ts";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatRoomsList from "../components/ChatRoomList";
 
@@ -64,19 +65,48 @@ export default function ChatRoomPage() {
     };
   }, [roomId, token]);
 
+  useEffect(() => {
+    if (!roomId) return;
+
+    const joinRoom = () => {
+      socket.emit("join_room", roomId);
+    };
+
+    const handleReceiveMessage = (message: IMessage) => {
+      if (message.roomId !== roomId) return;
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinRoom();
+    }
+
+    socket.on("connect", joinRoom);
+    socket.on("receive_message", handleReceiveMessage);
+
+    return () => {
+      socket.off("connect", joinRoom);
+      socket.off("receive_message", handleReceiveMessage);
+      socket.emit("leave_room", roomId);
+    };
+  }, [roomId]);
+
   const handleSendMessage = async (content: string) => {
     if (!token) return;
     try {
-      await axios.post(
+      const { data } = await axios.post(
         `${API_URL}/messages`,
         { roomId, content },
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      const { data } = await axios.get(`${API_URL}/messages/room/${roomId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessages(data);
+      setMessages((prev) => [...prev, data]);
+      socket.emit("send_message", data);
     } catch {
       setError("Gagal mengirim pesan");
       setTimeout(() => setError(null), 4000);
