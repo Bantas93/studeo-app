@@ -8,8 +8,7 @@ import {
   ControlBar,
   GridLayout,
   ParticipantTile,
-  useTracks,
-  useMaybeTrackRefContext,
+  useTracks, useMaybeTrackRefContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
@@ -93,6 +92,8 @@ export default function CallingPage() {
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
+        console.log(">>>> Token LiveKit:", data.token);
+        console.log(">>>> LiveKit URL:", LIVEKIT_URL);
         setLivekitToken(data.token);
         setConnecting(false);
       } catch {
