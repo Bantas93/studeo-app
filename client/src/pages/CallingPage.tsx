@@ -8,8 +8,8 @@ import {
   ControlBar,
   GridLayout,
   ParticipantTile,
-  TrackRefContext,
   useTracks,
+  useMaybeTrackRefContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
@@ -19,7 +19,7 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 type CallMode = "video" | "voice";
 
 function ParticipantTileWrapper({ mode }: { mode: CallMode }) {
-  const trackRef = TrackRefContext.useTrackRef();
+  const trackRef = useMaybeTrackRefContext();
   if (!trackRef) {
     return null;
   }

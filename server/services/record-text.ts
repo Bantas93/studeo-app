@@ -26,7 +26,7 @@ async function transcribeWithGroq(wavBuffer: Buffer): Promise<string> {
   const form = new FormData();
   form.append(
     "file",
-    new Blob([wavBuffer], { type: "audio/wav" }),
+    new Blob([new Uint8Array(wavBuffer)], { type: "audio/wav" }),
     "audio.wav",
   );
   form.append("model", "whisper-large-v3");
@@ -126,6 +126,7 @@ async function main() {
 
   await room.connect(process.env.LIVEKIT_URL as string, await at.toJwt(), {
     autoSubscribe: true,
+    dynacast: false,
   });
 
   console.log(`Bot bergabung ke room "${roomName}"...`);
