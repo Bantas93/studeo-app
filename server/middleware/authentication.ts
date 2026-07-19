@@ -8,7 +8,7 @@ declare global {
     interface Request {
       user?: {
         id: string;
-        name: string;
+        username: string;
         email: string;
       };
     }
@@ -43,7 +43,7 @@ export async function authentication(
 
     req.user = {
       id: user._id,
-      name: user.username,
+      username: user.username,
       email: user.email,
     };
     next();
