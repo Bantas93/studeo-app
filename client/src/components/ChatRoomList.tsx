@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import type { IMessage } from "../pages/ChatRoomPage";
+import { Link } from "react-router";
 
 interface IProps {
   roomId: string;
@@ -64,7 +65,9 @@ export default function ChatRoomsList({
           <span className="font-bold text-lg text-base-content">
             Room Chat #{roomId}
           </span>
-          <div className="btn">Video/Voice Call</div>
+          <Link to={`/room/calling/${roomId}`} className="btn">
+            Video/Voice Call
+          </Link>
         </div>
 
         <label

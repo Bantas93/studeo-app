@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import CreateRoomPage from "./pages/CreateRoomPage";
 import CreateSubjectPage from "./pages/CreateSubjectPage";
 import ChatRoomPage from "./pages/ChatRoomPage";
+import CallingPage from "./pages/CallingPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/room/create" element={<CreateRoomPage />} />
         <Route path="/subject/create" element={<CreateSubjectPage />} />
         <Route path="/room/:id" element={<ChatRoomPage />} />
+        <Route path="/room/calling/:id" element={<CallingPage />} />
       </Route>
     </Routes>
   );
