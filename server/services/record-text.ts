@@ -9,18 +9,29 @@ import {
 } from "@livekit/rtc-node";
 import { AccessToken } from "livekit-server-sdk";
 import { encodeWav } from "../helpers/encodeWav";
+import { askAI } from "../config/openAi";
 
 const room = new Room();
 
-interface TimestampBuffer {
+interface RecordedBuffer {
   timestamp: number,
   buffer: Buffer,
   participant: string,
   roomId: string | undefined
 }
 
-const audioBuffers: Record<string, Buffer[]> = {};
-const audioBuffers2: Record<string, TimestampBuffer[]> = {};
+type ActiveAudioRecorder = {
+  participantIdentity: string;
+  trackSid: string | undefined;
+  flush: () => void;
+  stop: () => void;
+};
+
+interface TranscriptEntry {
+  timestamp: number;
+  participant: string;
+  text: string;
+}
 
 interface GroqTranscriptionResponse {
   text: string;
@@ -28,6 +39,11 @@ interface GroqTranscriptionResponse {
     message: string;
   };
 }
+
+const recorderBuffer = new Map<string, RecordedBuffer[]>;
+const activeRecorders = new Map<string, ActiveAudioRecorder>();
+const getRecorderKey = (participantIdentity: string, trackSid: string) =>
+  `${participantIdentity}:${trackSid}`;
 
 async function transcribeWithGroq(wavBuffer: Buffer): Promise<string> {
   const form = new FormData();
@@ -68,32 +84,92 @@ room.on(
   ) => {
     if (track.kind !== TrackKind.KIND_AUDIO) return;
 
-    console.log(`Mulai merekam suara dari: ${participant.identity}`);
-    audioBuffers[participant.identity] = [];
+    if (!publication.sid) throw new Error("Publication SID is undefined!");
+    if (!room.name) throw new Error("Room name is undefined");
+    const participantIdentity = participant.identity;
+    const recorderKey = getRecorderKey(participantIdentity, publication.sid);
+    const roomName = room.name;
+
+    console.log(`Mulai merekam suara dari: ${recorderKey}`);
 
     const audioStream = new AudioStream(track, 16000, 1);
 
     await (async () => {
-      for await (const frame of audioStream) {
-        // const chunks = audioBuffers[participant.identity];
-        // if (!chunks) break;
-        // chunks.push(Buffer.from(frame.data.buffer));
+      const CHUNK_SIZE = 256 * 1024;
+      let accumulatedChunks: Buffer[] = [];
+      let accumulatedSize = 0;
+      let firstTimestamp = 0;
+      let stopRecord = false;
 
+      const flush = () => {
+        if (accumulatedChunks.length === 0) return;
+        const mergedBuffer = Buffer.concat(accumulatedChunks);
+        const timestampBuffers = recorderBuffer.get(roomName);
+        console.log(`[FLUSH] ${participantIdentity} — ${mergedBuffer.byteLength} bytes — ts: ${firstTimestamp}`);
 
-        const timestampBuffer = {
-          timestamp: Date.now(),
-          buffer: Buffer.from(frame.data.buffer),
-          participant: participant.identity,
-          roomId: room.name
+        if (timestampBuffers === undefined) {
+          recorderBuffer.set(roomName, [
+            {
+              timestamp: firstTimestamp,
+              buffer: mergedBuffer,
+              participant: participantIdentity,
+              roomId: roomName,
+            }
+          ]);
+        } else {
+          if (mergedBuffer.byteLength >= CHUNK_SIZE) {
+            timestampBuffers.push({
+              timestamp: firstTimestamp,
+              buffer: mergedBuffer,
+              participant: participantIdentity,
+              roomId: roomName,
+            });
+          } else {
+            const latestBuffer = timestampBuffers[timestampBuffers.length - 1];
+            latestBuffer.buffer = Buffer.concat([latestBuffer.buffer, mergedBuffer]);
+          }
         }
-        console.log(`${timestampBuffer.timestamp} - ${timestampBuffer.roomId} - ${timestampBuffer.participant} - BUFFER LENGTH: ${timestampBuffer.buffer.byteLength}`);
+        accumulatedChunks = [];
+        accumulatedSize = 0;
+      };
 
-        if (!room.name) {
-          throw new Error("Room name is undefined");
+      const stop = () => {
+        if(stopRecord) return;
+        stopRecord = true;
+        flush();
+        activeRecorders.delete(recorderKey);
+      }
+
+      activeRecorders.set(participantIdentity, {
+        participantIdentity: participantIdentity,
+        trackSid: publication.sid,
+        flush,
+        stop
+      });
+
+      try {
+        for await (const frame of audioStream) {
+          if (stopRecord) break;
+
+          const frameBuffer = Buffer.from(frame.data.buffer);
+          const dateNow = Date.now();
+          if (accumulatedChunks.length === 0) firstTimestamp = dateNow;
+
+          if (!room.remoteParticipants.get(participant.identity)) {
+            stop();
+          }
+
+          accumulatedChunks.push(frameBuffer);
+          accumulatedSize += frameBuffer.byteLength;
+
+          if (accumulatedSize >= CHUNK_SIZE) {
+            flush();
+          }
         }
-
-        audioBuffers2[room.name] ??= [];
-        audioBuffers2[room.name].push(timestampBuffer);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        stop();
       }
     })();
   },
@@ -102,46 +178,84 @@ room.on(
 room.on(
   RoomEvent.ParticipantDisconnected,
   async (participant: RemoteParticipant) => {
-    console.log(`${new Date().toLocaleString().split(" ")[1]} - Participant: ${participant.identity} has disconnected.`)
+    console.log(`Participant: ${participant.identity} has disconnected.`)
+
+    for (const [key, recorder] of activeRecorders) {
+      if (recorder.participantIdentity === participant.identity) {
+        recorder.stop();
+        activeRecorders.delete(key);
+      }
+    }
 
     if (room.remoteParticipants.size === 0) {
-      if (!room.name) {
-        throw new Error("Room name is undefined");
+      if (!room.name) throw new Error("Room name is undefined");
+
+      const roomName = room.name;
+      const chunks = recorderBuffer.get(roomName);
+      if (!chunks || chunks.length === 0) {
+        console.log("No audio chunks to transcribe.");
+        return;
       }
 
-      console.log("TOTAL DATA TIMESTAMP BUFFER: ", audioBuffers2[room.name]);
+      console.log(`All participants gone — processing ${chunks.length} audio chunk(s)`,);
 
-      const buffer = audioBuffers2[room.name]
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(buffer => buffer.buffer);
+      recorderBuffer.set(roomName, []);
 
-      audioBuffers2[room.name] = [];
-
-      const pcmBuffer = Buffer.concat(buffer);
-      const wavBuffer = encodeWav(pcmBuffer);
-
-      try {
-        const text = await transcribeWithGroq(wavBuffer);
-        // const aiResponse = await askAI(text);
-
-        // console.log("\n═══════════════════════════════════════");
-        // console.log(`🎤 Transkrip dari ${participant.identity}:`);
-        // console.log(`   "${text}"`);
-        // console.log(`🤖 AI Response:`);
-        // console.log(`   "${aiResponse}"`);
-        // console.log("═══════════════════════════════════════\n");
-      } catch (err) {
-        console.error("Gagal transkrip:", (err as Error).message);
+      // Sort by timestamp for all participants
+      const sorted = [...chunks].sort((a, b) => a.timestamp - b.timestamp);
+      const transcript: TranscriptEntry[] = [];
+      for (const chunk of sorted) {
+        try {
+          const wavBuffer = encodeWav(chunk.buffer);
+          const text = await transcribeWithGroq(wavBuffer);
+          if (text.trim()) {
+            transcript.push({
+              timestamp: chunk.timestamp,
+              participant: chunk.participant,
+              text: text.trim(),
+            });
+          }
+        } catch (err) {
+          console.error(
+            `Transcription failed for ${chunk.participant} @ ${chunk.timestamp}:`,
+            (err as Error).message,
+          );
+        }
       }
+
+      const conversation = transcript.map(entry => {
+        const time = new Date(entry.timestamp).toLocaleTimeString();
+        return `[${time}] ${entry.participant}: ${entry.text}`;
+      }).join("\n").trim();
+
+      console.log("Conversation: ");
+      console.log(conversation);
+
+      const prompt = `
+      Rangkum dengan singkat percakapan berikut ini.
+      
+      ${conversation}
+      `.trim();
+      console.log("AI prompt: ");
+      console.log(prompt);
+      const aiResponse = await askAI(prompt);
+      console.log("AI response: ");
+      console.log(aiResponse);
     }
   },
 );
 
 // 🔍 Saat room disconnect (semua participant sudah leave)
 room.on(RoomEvent.Disconnected, async (reason) => {
+  for (const recorder of activeRecorders.values()) {
+    recorder.stop();
+  }
+
+  activeRecorders.clear();
+
   console.log(`Room disconnected.`, reason);
-  console.log("\n🔚 Room telah kosong — semua participant sudah leave.");
-  console.log("   Hasil transkrip sudah dicetak di atas.\n");
+  console.log("Room telah kosong — semua participant sudah leave.");
+  console.log("Hasil transkrip sudah dicetak di atas.\n");
 });
 
 async function main() {
@@ -158,7 +272,7 @@ async function main() {
 
   await room.connect(process.env.LIVEKIT_URL as string, await at.toJwt(), {
     autoSubscribe: true,
-    dynacast: false
+    dynacast: false,
   });
 
   console.log(`Bot bergabung ke room "${roomName}"...`);
