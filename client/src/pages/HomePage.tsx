@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 interface IRoom {
   _id: string;
@@ -11,6 +11,7 @@ interface IRoom {
 }
 
 export default function HompePage() {
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<IRoom[]>([]);
 
   const fetchData = async () => {
@@ -38,13 +39,24 @@ export default function HompePage() {
   return (
     <div className="min-h-screen p-6">
       <div className="flex flex-col gap-4">
-        <div className="flex gap-4">
-          <Link to={"/room/create"} className="btn btn-primary">
-            Create Room
-          </Link>
-          <Link to={"/subject/create"} className="btn">
-            Create Subject
-          </Link>
+        <div className="flex justify-between gap-4">
+          <div className="flex gap-4">
+            <Link to={"/room/create"} className="btn btn-primary">
+              Create Room
+            </Link>
+            <Link to={"/subject/create"} className="btn">
+              Create Subject
+            </Link>
+          </div>
+          <button
+            className="btn"
+            onClick={() => {
+              localStorage.removeItem("access_token");
+              navigate("/");
+            }}
+          >
+            Logout
+          </button>
         </div>
 
         <div className="grid lg:grid-cols-3 md:grid-cols-2 sm-grid-cols-1 gap-4">
