@@ -72,7 +72,7 @@ export default function ChatRoomPage() {
         { roomId, content },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      // Refresh messages after sending
+
       const { data } = await axios.get(`${API_URL}/messages/room/${roomId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
