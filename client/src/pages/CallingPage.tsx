@@ -8,8 +8,7 @@ import {
   ControlBar,
   GridLayout,
   ParticipantTile,
-  TrackRefContext,
-  useTracks,
+  useTracks, useMaybeTrackRefContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
@@ -19,7 +18,7 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 type CallMode = "video" | "voice";
 
 function ParticipantTileWrapper({ mode }: { mode: CallMode }) {
-  const trackRef = TrackRefContext.useTrackRef();
+  const trackRef = useMaybeTrackRefContext();
   if (!trackRef) {
     return null;
   }
@@ -93,6 +92,8 @@ export default function CallingPage() {
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
+        console.log(">>>> Token LiveKit:", data.token);
+        console.log(">>>> LiveKit URL:", LIVEKIT_URL);
         setLivekitToken(data.token);
         setConnecting(false);
       } catch {
