@@ -8,8 +8,7 @@ import {
   ControlBar,
   GridLayout,
   ParticipantTile,
-  TrackRefContext,
-  useTracks,
+  useTracks, useMaybeTrackRefContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
@@ -19,7 +18,7 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 type CallMode = "video" | "voice";
 
 function ParticipantTileWrapper({ mode }: { mode: CallMode }) {
-  const trackRef = TrackRefContext.useTrackRef();
+  const trackRef = useMaybeTrackRefContext();
   if (!trackRef) {
     return null;
   }
@@ -93,6 +92,8 @@ export default function CallingPage() {
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
+        console.log(">>>> Token LiveKit:", data.token);
+        console.log(">>>> LiveKit URL:", LIVEKIT_URL);
         setLivekitToken(data.token);
         setConnecting(false);
       } catch {
@@ -139,7 +140,18 @@ export default function CallingPage() {
         serverUrl={LIVEKIT_URL}
         video={mode === "video"}
         audio={true}
+        // connect={true} // todo turn false if diconnected
         onDisconnected={handleDisconnected}
+        onError={(error) => {
+          console.error(">>> LiveKit error:", error);
+        }}
+        // connectOptions={{
+        //   autoSubscribe: true,
+        //   peerConnectionTimeout: 60,
+        //   maxRetries: 5,
+        //   websocketTimeout: 60,
+        //
+        // }}
         className="h-full flex flex-col"
       >
         {/* Header */}
@@ -164,7 +176,7 @@ export default function CallingPage() {
             controls={{
               microphone: true,
               camera: mode === "video",
-              screenShare: false,
+              screenShare: true,
               leave: true,
             }}
           />
