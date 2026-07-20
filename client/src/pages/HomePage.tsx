@@ -164,6 +164,27 @@ export default function HompePage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const result = await Swal.fire({
+        title: "Do you want logout?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes",
+      });
+
+      if (!result.isConfirmed) return;
+
+      localStorage.removeItem("access_token");
+      navigate("/");
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
+    }
+  };
   return (
     <div className="min-h-screen p-6">
       <div className="flex flex-col gap-4">
@@ -176,13 +197,7 @@ export default function HompePage() {
               Create Subject
             </Link>
           </div>
-          <button
-            className="btn"
-            onClick={() => {
-              localStorage.removeItem("access_token");
-              navigate("/");
-            }}
-          >
+          <button className="btn" onClick={handleLogout}>
             Logout
           </button>
         </div>
