@@ -5,9 +5,9 @@ import {
 } from "mongoloquent";
 import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
-import { ObjectId } from "mongodb";
 import User from "./User";
 import Message from "./Message";
+import Member from "./Member";
 
 export interface IRoom extends IMongoloquentSchema, IMongoloquentTimestamps {
   name: string;
@@ -47,8 +47,17 @@ class Room extends Model<IRoom> {
   public static $schema: IRoom;
   protected $collection: string = "rooms";
 
-  static async getAllRooms() {
-    const rooms = await Room.all();
+  static async getAllRooms(userId: string) {
+    // Get the rooms where this user is a member
+    const userMemberships = await Member.where("userId", "eq", userId).all();
+    const roomIds = userMemberships.map((m) => m.roomId);
+
+    // Always include public rooms, plus private rooms the user is a member of
+    let query = Room.where("roomType", "public");
+    if (roomIds.length > 0) {
+      query = query.orWhereIn("_id", roomIds);
+    }
+    const rooms = await query.all();
 
     const roomsWithCreator = await Promise.all(
       rooms.map(async (room) => {
@@ -106,6 +115,10 @@ class Room extends Model<IRoom> {
     }
 
     const checkRoom = await Room.create(validPayload);
+    await Member.createMember({
+      roomId: String(checkRoom._id),
+      userId: validPayload.createdBy
+    });
     return checkRoom;
   }
 

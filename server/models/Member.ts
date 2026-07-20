@@ -1,53 +1,37 @@
-import {
-  Model,
-  IMongoloquentSchema,
-  IMongoloquentTimestamps,
-} from "mongoloquent";
-import { z } from "zod";
-import { AppError } from "../middleware/errorHandler";
+import {IMongoloquentSchema, IMongoloquentTimestamps, Model,} from "mongoloquent";
+import {z} from "zod";
+import {AppError} from "../middleware/errorHandler";
 
 export interface IMember extends IMongoloquentSchema, IMongoloquentTimestamps {
-  role: string;
-  status: string;
+  roomId: string;
+  userId: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export type MemberInput = {
-  role: string;
-  status: string;
+  roomId: string;
+  userId: string;
 };
+
+// todo may not needed
 export type MemberUpdateInput = Partial<MemberInput>;
 
 const memberCreateSchema = z.object({
-  role: z.string().trim().min(1, "Role wajib diisi"),
-  status: z.string().trim().min(1, "Status wajib diisi"),
+  roomId: z.string().trim().min(1, "Room ID wajib diisi"),
+  userId: z.string().trim().min(1, "User ID wajib diisi"),
 });
+
+// todo may not needed
 const memberUpdateSchema = memberCreateSchema.partial();
 
 class Member extends Model<IMember> {
   public static $schema: IMember;
   protected $collection: string = "members";
 
-  static async getMembers() {
-    return Member.all();
-  }
-
-  static async getMemberById(id: string) {
-    const findMember = await Member.find(id);
-    if (!findMember) throw new AppError("Member tidak ditemukan", 404);
-
-    const member = {
-      id: findMember.id || findMember._id,
-      roomId: findMember.roomId,
-      userId: findMember.userId,
-      role: findMember.role,
-      status: findMember.status,
-      createdAt: findMember.createdAt,
-      updatedAt: findMember.updatedAt,
-    };
-
-    return member;
+  static async getMembersByRoomId(roomId: string) {
+    return await Member.where("roomId", "eq", roomId)
+      .all();
   }
 
   static async createMember(payload: MemberInput) {
@@ -57,23 +41,29 @@ class Member extends Model<IMember> {
       throw new AppError(message, 400);
     }
 
-    return Member.create(result.data);
+    await Member.create(payload);
+    return this.getMembersByRoomId(payload.roomId);
   }
 
-  static async updateMember(id: string, payload: MemberUpdateInput) {
-    const result = memberUpdateSchema.safeParse(payload);
-    if (!result.success) {
-      const message = result.error.issues[0]?.message || "Validasi gagal";
-      throw new AppError(message, 400);
-    }
+  // todo let see if needed
+  // static async getMembers() {
+  //   return Member.all();
+  // }
 
-    await Member.getMemberById(id);
-    return Member.where("_id", id).update(result.data);
-  }
-
-  static async deleteMember(id: string) {
-    await Member.getMemberById(id);
-    return Member.where("_id", id).delete();
-  }
+  // static async updateMember(id: string, payload: MemberUpdateInput) {
+  //   const result = memberUpdateSchema.safeParse(payload);
+  //   if (!result.success) {
+  //     const message = result.error.issues[0]?.message || "Validasi gagal";
+  //     throw new AppError(message, 400);
+  //   }
+  //
+  //   await Member.getMembersByRoomId(id);
+  //   return Member.where("_id", id).update(result.data);
+  // }
+  //
+  // static async deleteMember(id: string) {
+  //   await Member.getMembersByRoomId(id);
+  //   return Member.where("_id", id).delete();
+  // }
 }
 export default Member;

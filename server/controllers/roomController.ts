@@ -15,7 +15,7 @@ interface IParams {
 class RoomController {
   static async getRooms(req: Request, res: Response, next: NextFunction) {
     try {
-      const rooms = await Room.getAllRooms();
+      const rooms = await Room.getAllRooms(String(req.user!.id));
       res.status(200).json(rooms);
     } catch (error) {
       next(error);
