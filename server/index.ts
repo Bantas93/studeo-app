@@ -9,6 +9,7 @@ import Routes from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { setIO } from "./lib/socket";
 import { startScheduleNotifier } from "./services/schedule-notifier";
+import Member from "./models/Member";
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
@@ -45,6 +46,28 @@ io.on("connection", (socket) => {
     socket.leave(roomId);
     console.log(`[socket] ${socket.id} leave room ${roomId}`);
   });
+
+  socket.on(
+    "schedule-notification",
+    async (payload: { userId: string; roomIds: string[] }) => {
+      const { userId, roomIds } = payload;
+      if (!userId || !roomIds?.length) return;
+
+      for (const roomId of roomIds) {
+        const isMember = await Member.where("roomId", "eq", roomId)
+          .where("userId", "eq", userId)
+          .first();
+
+        if (isMember) {
+          const notificationRoom = `schedule:${roomId}`;
+          socket.join(notificationRoom);
+          console.log(
+            `[socket] ${socket.id} joined schedule notifications for room ${roomId}`,
+          );
+        }
+      }
+    },
+  );
 
   socket.on("send_message", (message) => {
     if (!message?.roomId) return;

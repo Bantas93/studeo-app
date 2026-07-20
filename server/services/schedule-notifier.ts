@@ -24,7 +24,7 @@ export function startScheduleNotifier() {
       for (const schedule of upcoming) {
         if (schedule.isEmitted) continue;
 
-        getIO().to(schedule.roomId).emit("schedule_reminder", {
+        getIO().to(`schedule:${schedule.roomId}`).emit("schedule_reminder", {
           title: schedule.title,
           meetingTime: schedule.meetingTime,
           roomId: schedule.roomId,

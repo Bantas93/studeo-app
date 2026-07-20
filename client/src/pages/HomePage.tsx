@@ -64,16 +64,45 @@ export default function HompePage() {
       fetchData();
     };
     const handleMembersInvite = () => fetchData();
+    const handleScheduleReminder = (data: {
+      title: string;
+      meetingTime: string;
+      roomId: string;
+    }) => {
+      Swal.fire({
+        title: `📅 ${data.title}`,
+        text: `Meeting at ${new Date(data.meetingTime).toLocaleTimeString()}`,
+        icon: "info",
+        confirmButtonText: "OK",
+      });
+    };
 
     socket.on("rooms_updated", handleRoomsUpdated);
     socket.on("members_updated", handleMembersInvite);
+    socket.on("schedule_reminder", handleScheduleReminder);
 
     return () => {
       socket.off("rooms_updated", handleRoomsUpdated);
       socket.off("members_updated", handleMembersInvite);
+      socket.off("schedule_reminder", handleScheduleReminder);
       socket.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (!socket.connected || rooms.length === 0) return;
+
+    const userId = getCurrentUserId();
+    if (!userId) return;
+
+    const memberRoomIds = rooms
+      .filter((r) => r.isMember)
+      .map((r) => r._id.toString());
+
+    if (memberRoomIds.length > 0) {
+      socket.emit("schedule-notification", { userId, roomIds: memberRoomIds });
+    }
+  }, [rooms]);
 
   const handleJoinRoom = async (
     roomId: string,
