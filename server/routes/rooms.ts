@@ -4,7 +4,7 @@ import { authentication } from "../middleware/authentication";
 
 const RoomRouter = express.Router();
 
-RoomRouter.get("/", RoomController.getRooms);
+RoomRouter.get("/", authentication, RoomController.getRooms);
 RoomRouter.get("/:id", RoomController.getRoomById);
 RoomRouter.post("/", authentication, RoomController.createRoom);
 RoomRouter.put("/:id", RoomController.updateRoom);

@@ -3,10 +3,11 @@ import MemberController from "../controllers/memberController";
 
 const MemberRouter = express.Router();
 
-MemberRouter.get("/", MemberController.getMembers);
-MemberRouter.get("/:id", MemberController.getMemberById);
+MemberRouter.get("/room/:id", MemberController.getMembersByRoomId);
 MemberRouter.post("/", MemberController.createMember);
-MemberRouter.put("/:id", MemberController.updateMember);
-MemberRouter.delete("/:id", MemberController.deleteMember);
+// todo may not used
+// MemberRouter.get("/", MemberController.getMembers);
+// MemberRouter.put("/:id", MemberController.updateMember);
+// MemberRouter.delete("/:id", MemberController.deleteMember);
 
 export default MemberRouter;
