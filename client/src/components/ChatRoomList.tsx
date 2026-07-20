@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import type { IMessage } from "../pages/ChatRoomPage";
 import { Link } from "react-router";
+import { formatTime } from "../helpers/formatTime";
 
 interface IProps {
   roomId: string;
@@ -9,14 +10,6 @@ interface IProps {
   error: string | null;
   currentUserId: string;
   onSendMessage: (content: string) => void;
-}
-
-function formatTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export default function ChatRoomsList({
