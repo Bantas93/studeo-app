@@ -60,6 +60,12 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("todos_updated");
   });
 
+  socket.on("members_changed", ({ roomId }: { roomId: string }) => {
+    console.log(roomId, "<<<<<ROOMID");
+    console.log(`[socket] members_updated for room ${roomId}`);
+    socket.broadcast.emit("members_updated");
+  });
+
   socket.on(
     "user_typing",
     ({

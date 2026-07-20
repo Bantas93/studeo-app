@@ -169,7 +169,7 @@ export default function ChatRoomsList({
                 {msg.username ?? "Unknown"}
               </div>
               <div
-                className={`chat-bubble ${isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
+                className={`chat-bubble overflow-auto text-ellipsis ${isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
                 dangerouslySetInnerHTML={{
                   __html: marked.parse(msg.content, { breaks: true }),
                 }}

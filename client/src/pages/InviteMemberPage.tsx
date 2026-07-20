@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import Swal from "sweetalert2";
+import { socket } from "../lib/socket";
 
 interface User {
   _id: string;
@@ -30,38 +31,36 @@ export default function InviteMemberPage() {
   const dropdownRef = useRef<HTMLUListElement>(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Fetch all users
   useEffect(() => {
     axios
       .get<User[]>(`${import.meta.env.VITE_API_URL}/users`)
       .then(({ data }) => setUsers(data))
-      .catch(() => {
-        // silently fail
-      });
+      .catch(() => {});
   }, []);
 
-  // Fetch members for this room
   const fetchMembers = useCallback(() => {
     axios
       .get<Member[]>(`${import.meta.env.VITE_API_URL}/members/room/${roomId}`)
       .then(({ data }) => setMembers(data))
-      .catch(() => {
-        // silently fail
-      });
+      .catch(() => {});
   }, [roomId]);
 
   useEffect(() => {
     if (roomId) fetchMembers();
   }, [fetchMembers]);
 
-  // Members enriched with user data
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+  }, []);
+
   const memberUsers = members
     .map((m) => users.find((u) => u._id === m.userId))
     .filter(Boolean) as User[];
 
   const memberUserIds = new Set(members.map((m) => m.userId));
 
-  // Filter users by username or email, excluding existing members
   const filteredUsers =
     search.trim().length > 0
       ? users.filter(
@@ -87,6 +86,8 @@ export default function InviteMemberPage() {
         },
       );
 
+      socket.emit("members_changed", { roomId });
+
       Swal.fire({
         title: "Member invited successfully",
         icon: "success",
@@ -105,7 +106,6 @@ export default function InviteMemberPage() {
     }
   };
 
-  // Hide dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -122,9 +122,7 @@ export default function InviteMemberPage() {
   return (
     <div className="flex justify-center items-center min-h-screen">
       <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-        <legend className="fieldset-legend">
-          Invite Member
-        </legend>
+        <legend className="fieldset-legend">Invite Member</legend>
 
         {error && <p className="text-red-500 text-center">{error}</p>}
 
@@ -229,7 +227,6 @@ export default function InviteMemberPage() {
         >
           Back to Room
         </Link>
-
       </fieldset>
     </div>
   );
