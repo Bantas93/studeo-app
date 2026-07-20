@@ -9,6 +9,7 @@ import CreateSubjectPage from "./pages/CreateSubjectPage";
 import ChatRoomPage from "./pages/ChatRoomPage";
 import CallingPage from "./pages/CallingPage";
 import CreateTodoPage from "./pages/CreateTodoPage";
+import InviteMemberPage from "./pages/InviteMemberPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Route element={<MainLayout />}>
         <Route path="/homepage" element={<HompePage />} />
         <Route path="/room/create" element={<CreateRoomPage />} />
+        <Route path="/room/:id/invite/member" element={<InviteMemberPage />} />
         <Route path="/room/:id/create/todo" element={<CreateTodoPage />} />
         <Route
           path="/room/:id/edit/todo/:todoId"
