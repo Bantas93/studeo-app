@@ -87,7 +87,7 @@ export default function InviteMemberPage() {
         },
       );
 
-      Swal.fire({
+      await Swal.fire({
         title: "Member invited successfully",
         icon: "success",
       });
