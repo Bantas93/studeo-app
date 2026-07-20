@@ -8,6 +8,7 @@ import {
   TrackKind,
 } from "@livekit/rtc-node";
 import { AccessToken } from "livekit-server-sdk";
+import { io as ioClient } from "socket.io-client";
 import { encodeWav } from "../helpers/encodeWav";
 import { askAI } from "../config/openAi";
 import Message from "../models/Message";
@@ -16,8 +17,12 @@ import RoomModel from "../models/Room";
 import { server } from "../config/dns";
 server();
 
-const BOT_NAME = "recorder-bot";
+const SOCKET_SERVER_URL = process.env.SOCKET_SERVER_URL;
+const BOT_NAME = process.env.BOT_NAME;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const room = new Room();
+let socketClient: ReturnType<typeof ioClient> | null = null;
 
 interface RecordedBuffer {
   timestamp: number;
@@ -213,6 +218,25 @@ room.on(
 
       recorderBuffer.set(roomName, []);
 
+      const botUser = await User.where("username", "eq", BOT_NAME).first();
+      if (!botUser) {
+        throw new Error(`Bot user not found: ${BOT_NAME}`);
+      }
+
+      let isBotTyping = true;
+      const botTyping = async () => {
+        while (socketClient?.connected && isBotTyping) {
+          socketClient.emit("user_typing", {
+            roomId: room.name,
+            userId: String(botUser._id),
+            username: BOT_NAME,
+          });
+          await sleep(500);
+        }
+      };
+
+      const typingPromise = botTyping();
+
       // Sort by timestamp for all participants
       const sorted = [...chunks].sort((a, b) => a.timestamp - b.timestamp);
       const transcript: TranscriptEntry[] = [];
@@ -259,16 +283,27 @@ room.on(
       console.log("AI response: ");
       console.log(aiResponse);
 
-      const botUser = await User.where("username", "eq", BOT_NAME).first();
-      if (!botUser) {
-        throw new Error(`Bot user not found: ${BOT_NAME}`);
-      }
-
-      await Message.sendMessage({
+      const savedMessage = await Message.sendMessage({
         roomId: roomName,
         content: aiResponse ? aiResponse : "-",
         userId: String(botUser._id),
       });
+
+      isBotTyping = false;
+      if (socketClient?.connected) {
+        socketClient.emit("stop_typing", {
+          roomId: roomName,
+          userId: String(botUser._id),
+        });
+      }
+      await typingPromise;
+
+      if (socketClient?.connected) {
+        socketClient.emit("send_message", {
+          ...savedMessage,
+          username: BOT_NAME,
+        });
+      }
     }
   },
 );
@@ -287,6 +322,12 @@ room.on(RoomEvent.Disconnected, async (reason) => {
 
 async function main() {
   const roomName = process.argv[2] || "Test-Room";
+
+  socketClient = ioClient(SOCKET_SERVER_URL);
+  await new Promise<void>((resolve) => {
+    socketClient!.on("connect", resolve);
+  });
+  console.log(`Socket.IO bot connected to ${SOCKET_SERVER_URL}`);
 
   const at = new AccessToken(
     process.env.LIVEKIT_API_KEY,
