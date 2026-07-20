@@ -32,8 +32,10 @@ export default function CreateRoomPage() {
       );
 
       setSubjects(data);
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
     }
   };
 

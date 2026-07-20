@@ -36,8 +36,10 @@ export default function CreateTodoPage() {
 
       setTitle(data.title);
       setDescription(data.description);
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
     }
   };
 

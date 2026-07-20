@@ -46,8 +46,10 @@ export default function HompePage() {
       });
 
       setRooms(data);
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
     }
   };
 
@@ -73,7 +75,11 @@ export default function HompePage() {
     };
   }, []);
 
-  const handleJoinRoom = async (roomId: string, roomName: string, isMember: boolean) => {
+  const handleJoinRoom = async (
+    roomId: string,
+    roomName: string,
+    isMember: boolean,
+  ) => {
     const token = localStorage.getItem("access_token");
     const userId = getCurrentUserId();
 
@@ -213,7 +219,13 @@ export default function HompePage() {
                       </button>
                       <button
                         className="btn btn-primary"
-                        onClick={() => handleJoinRoom(room._id.toString(), room.name, room.isMember)}
+                        onClick={() =>
+                          handleJoinRoom(
+                            room._id.toString(),
+                            room.name,
+                            room.isMember,
+                          )
+                        }
                         disabled={joiningRoomId === room._id.toString()}
                       >
                         {joiningRoomId === room._id.toString()

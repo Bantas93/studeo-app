@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
@@ -36,8 +36,10 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
         },
       );
       setTodos(data);
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
     }
   };
 
@@ -108,8 +110,10 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
 
       socket.emit("todos_changed");
       fetchData();
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
     }
   };
   return (
