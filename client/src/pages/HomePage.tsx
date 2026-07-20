@@ -68,10 +68,13 @@ export default function HompePage() {
       title: string;
       meetingTime: string;
       roomId: string;
+      room: { name: string; subject: string; roomType: string } | null;
     }) => {
+      const roomName = data.room?.name ?? data.roomId;
+      const subject = data.room?.subject ?? "";
       Swal.fire({
-        title: `📅 ${data.title}`,
-        text: `Meeting at ${new Date(data.meetingTime).toLocaleTimeString()}`,
+        title: `📅 ${roomName}`,
+        text: `Subject: ${subject} Meeting at ${new Date(data.meetingTime)}`,
         icon: "info",
         confirmButtonText: "OK",
       });

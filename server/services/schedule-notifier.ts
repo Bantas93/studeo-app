@@ -1,5 +1,6 @@
 import { getIO } from "../lib/socket";
 import Schedule from "../models/Schedule";
+import RoomModel from "../models/Room";
 
 const POLL_MS = 5_000;
 const LOOKBACK_MS = 5_000;
@@ -24,10 +25,19 @@ export function startScheduleNotifier() {
       for (const schedule of upcoming) {
         if (schedule.isEmitted) continue;
 
+        const room = await RoomModel.find(String(schedule.roomId));
+
         getIO().to(`schedule:${schedule.roomId}`).emit("schedule_reminder", {
           title: schedule.title,
           meetingTime: schedule.meetingTime,
           roomId: schedule.roomId,
+          room: room
+            ? {
+                name: room.name,
+                subject: room.subject,
+                roomType: room.roomType,
+              }
+            : null,
         });
 
         await Schedule.update(schedule, { isEmitted: true });
