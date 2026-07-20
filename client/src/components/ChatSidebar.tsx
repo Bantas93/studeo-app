@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { socket } from "../lib/socket";
+import { marked } from "marked";
 
 interface IProps {
   roomId: string;
@@ -120,7 +121,10 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
 
       {/* Bagian Tombol Aksi */}
       <div className="flex flex-col gap-2">
-        <Link to={`/room/${roomName}-${_roomId}/invite/member`} className="btn btn-primary btn-sm w-full">
+        <Link
+          to={`/room/${roomName}-${_roomId}/invite/member`}
+          className="btn btn-primary btn-sm w-full"
+        >
           Invite Friends
         </Link>
         <button
@@ -167,10 +171,20 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
                   </button>
                 </div>
                 <div className="card-body p-4">
-                  <h2 className="card-title text-sm pr-12">{todo.title}</h2>
-                  <p className="text-xs text-base-content/50 italic mt-2">
-                    {todo.description}
-                  </p>
+                  <h2 className="card-title text-sm pr-12 wrap-break-word whitespace-normal">
+                    {todo.title}
+                  </h2>
+                  <div
+                    className="text-xs text-base-content/70 mt-2 wrap-break-word 
+                          [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4
+                          [&_li]:mt-0.5 [&_p]:mb-1 [&_strong]:font-semibold
+                          [&_code]:bg-base-200 [&_code]:px-1 [&_code]:rounded [&_code]:text-xs
+                          [&_pre]:bg-base-200 [&_pre]:p-2 [&_pre]:rounded-box [&_pre]:overflow-x-auto [&_pre]:text-xs
+                          [&_a]:link [&_a]:link-primary"
+                    dangerouslySetInnerHTML={{
+                      __html: marked.parse(todo.description, { breaks: true }),
+                    }}
+                  />
                 </div>
               </div>
             );
