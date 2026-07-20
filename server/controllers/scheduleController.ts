@@ -5,6 +5,10 @@ interface IParams {
   id: string;
 }
 
+interface IRoomParams {
+  roomId: string;
+}
+
 class ScheduleController {
   static async getSchedules(
     req: Request,
@@ -12,7 +16,20 @@ class ScheduleController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const data = await Schedule.getAll();
+      const data = await Schedule.getSchedules();
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getSchedulesByRoomId(
+    req: Request<IRoomParams>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const data = await Schedule.getSchedulesByRoomId(req.params.roomId);
       res.status(200).json(data);
     } catch (error) {
       next(error);

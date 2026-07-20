@@ -46,6 +46,12 @@ class Schedule extends Model<ISchedule> {
     return Schedule.all();
   }
 
+  static async getSchedulesByRoomId(roomId: string) {
+    return Schedule.where("roomId", "eq", roomId)
+      .orderBy("createdAt", "desc")
+      .all();
+  }
+
   static async getScheduleById(id: string) {
     const data = await Schedule.find(id);
     if (!data) throw new AppError("Jadwal tidak ditemukan", 404);
