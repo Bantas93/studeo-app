@@ -13,15 +13,17 @@ import { askAI } from "../config/openAi";
 import Message from "../models/Message";
 import User from "../models/User";
 import RoomModel from "../models/Room";
+import { server } from "../config/dns";
+server();
 
 const BOT_NAME = "recorder-bot";
 const room = new Room();
 
 interface RecordedBuffer {
-  timestamp: number,
-  buffer: Buffer,
-  participant: string,
-  roomId: string | undefined
+  timestamp: number;
+  buffer: Buffer;
+  participant: string;
+  roomId: string | undefined;
 }
 
 type ActiveAudioRecorder = {
@@ -44,7 +46,7 @@ interface GroqTranscriptionResponse {
   };
 }
 
-const recorderBuffer = new Map<string, RecordedBuffer[]>;
+const recorderBuffer = new Map<string, RecordedBuffer[]>();
 const activeRecorders = new Map<string, ActiveAudioRecorder>();
 const getRecorderKey = (participantIdentity: string, trackSid: string) =>
   `${participantIdentity}:${trackSid}`;
@@ -108,7 +110,9 @@ room.on(
         if (accumulatedChunks.length === 0) return;
         const mergedBuffer = Buffer.concat(accumulatedChunks);
         const timestampBuffers = recorderBuffer.get(roomName);
-        console.log(`[FLUSH] ${participantIdentity} — ${mergedBuffer.byteLength} bytes — ts: ${firstTimestamp}`);
+        console.log(
+          `[FLUSH] ${participantIdentity} — ${mergedBuffer.byteLength} bytes — ts: ${firstTimestamp}`,
+        );
 
         if (timestampBuffers === undefined) {
           recorderBuffer.set(roomName, [
@@ -117,7 +121,7 @@ room.on(
               buffer: mergedBuffer,
               participant: participantIdentity,
               roomId: roomName,
-            }
+            },
           ]);
         } else {
           if (mergedBuffer.byteLength >= CHUNK_SIZE) {
@@ -129,7 +133,10 @@ room.on(
             });
           } else {
             const latestBuffer = timestampBuffers[timestampBuffers.length - 1];
-            latestBuffer.buffer = Buffer.concat([latestBuffer.buffer, mergedBuffer]);
+            latestBuffer.buffer = Buffer.concat([
+              latestBuffer.buffer,
+              mergedBuffer,
+            ]);
           }
         }
         accumulatedChunks = [];
@@ -137,17 +144,17 @@ room.on(
       };
 
       const stop = () => {
-        if(stopRecord) return;
+        if (stopRecord) return;
         stopRecord = true;
         flush();
         activeRecorders.delete(recorderKey);
-      }
+      };
 
       activeRecorders.set(participantIdentity, {
         participantIdentity: participantIdentity,
         trackSid: publication.sid,
         flush,
-        stop
+        stop,
       });
 
       try {
@@ -181,7 +188,7 @@ room.on(
 room.on(
   RoomEvent.ParticipantDisconnected,
   async (participant: RemoteParticipant) => {
-    console.log(`Participant: ${participant.identity} has disconnected.`)
+    console.log(`Participant: ${participant.identity} has disconnected.`);
 
     for (const [key, recorder] of activeRecorders) {
       if (recorder.participantIdentity === participant.identity) {
@@ -200,7 +207,9 @@ room.on(
         return;
       }
 
-      console.log(`All participants gone — processing ${chunks.length} audio chunk(s)`,);
+      console.log(
+        `All participants gone — processing ${chunks.length} audio chunk(s)`,
+      );
 
       recorderBuffer.set(roomName, []);
 
@@ -226,10 +235,13 @@ room.on(
         }
       }
 
-      const conversation = transcript.map(entry => {
-        const time = new Date(entry.timestamp).toLocaleTimeString();
-        return `[${time}] ${entry.participant}: ${entry.text}`;
-      }).join("\n").trim();
+      const conversation = transcript
+        .map((entry) => {
+          const time = new Date(entry.timestamp).toLocaleTimeString();
+          return `[${time}] ${entry.participant}: ${entry.text}`;
+        })
+        .join("\n")
+        .trim();
 
       console.log("Conversation: ");
       console.log(conversation);
