@@ -34,5 +34,20 @@ class MemberController {
     }
   }
 
+  static async deleteMemberFromRoom(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const roomId = String(req.params.id);
+      const userId = String(req.user!.id);
+
+      await Member.deleteMemberByRoomAndUser(roomId, userId);
+      res.status(200).json();
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 export default MemberController;

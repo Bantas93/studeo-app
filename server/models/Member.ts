@@ -46,5 +46,17 @@ class Member extends Model<IMember> {
 
     await Member.create(payload);
   }
+
+  static async deleteMemberByRoomAndUser(roomId: string, userId: string) {
+    const member = await Member.where("roomId", "eq", roomId)
+      .where("userId", "eq", userId)
+      .first();
+
+    if (!member) {
+      throw new AppError("Member tidak ditemukan di room ini", 404);
+    }
+
+    return Member.where("_id", member._id).delete();
+  }
 }
 export default Member;
