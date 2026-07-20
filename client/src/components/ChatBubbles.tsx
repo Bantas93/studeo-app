@@ -33,7 +33,7 @@ export default function ChatBubbles(input: ChatBubbleInput) {
             </div>
             {msg.isBot ? (
               <div
-                className={`chat-bubble overflow-auto text-ellipsis ${isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
+                className={`chat-bubble overflow-auto text-ellipsis bg-base-300 border-l-4 border-secondary`}
                 dangerouslySetInnerHTML={{
                   __html: marked.parse(msg.content, { breaks: true }),
                 }}
