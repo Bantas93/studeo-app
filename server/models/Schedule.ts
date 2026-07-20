@@ -29,6 +29,7 @@ export type ScheduleUpdateInput = Partial<ScheduleInput>;
 
 const scheduleCreateSchema = z.object({
   title: z.string().trim().min(1, "Judul jadwal tidak boleh kosong"),
+  description: z.string().trim().optional(),
   roomId: z.string().trim().min(1, "Room ID wajib diisi"),
   meetingTime: z
     .string()
