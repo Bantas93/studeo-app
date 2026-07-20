@@ -197,8 +197,16 @@ export default function HompePage() {
               Create Subject
             </Link>
           </div>
+
           <button className="btn" onClick={handleLogout}>
-            Logout
+            Welcome,{" "}
+            {
+              JSON.parse(
+                atob(
+                  (localStorage.getItem("access_token") || ".").split(".")[1],
+                ),
+              ).username
+            }
           </button>
         </div>
 
