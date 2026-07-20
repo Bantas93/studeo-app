@@ -1,9 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import type { IMessage } from "../pages/ChatRoomPage";
 import { Link } from "react-router";
-import { formatTime } from "../helpers/formatTime";
-import { marked } from "marked";
 import { socket } from "../lib/socket";
+import ChatBubbles from "./ChatBubbles.tsx";
 
 interface IProps {
   roomId: string;
@@ -26,7 +25,6 @@ export default function ChatRoomsList({
 }: IProps) {
   const [draft, setDraft] = useState("");
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
-  const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentUsername = (() => {
@@ -39,10 +37,6 @@ export default function ChatRoomsList({
       return "";
     }
   })();
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   useEffect(() => {
     if (draft.trim()) {
@@ -103,8 +97,6 @@ export default function ChatRoomsList({
     };
   }, [currentUserId]);
 
-  // ...
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = draft.trim();
@@ -156,33 +148,10 @@ export default function ChatRoomsList({
       </div>
 
       {/* Area Chat */}
-      <div className="flex-1 overflow-x-hidden overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => {
-          const isMe = msg.userId === currentUserId;
-
-          return (
-            <div
-              key={msg._id}
-              className={`chat ${isMe ? "chat-end" : "chat-start"}`}
-            >
-              <div className="chat-header text-xs opacity-50 mb-1">
-                {msg.username ?? "Unknown"}
-              </div>
-              <div
-                className={`chat-bubble overflow-auto text-ellipsis ${isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
-                dangerouslySetInnerHTML={{
-                  __html: marked.parse(msg.content, { breaks: true }),
-                }}
-              />
-
-              <div className="chat-footer opacity-50 text-[10px] mt-1">
-                {formatTime(msg.createdAt)}
-              </div>
-            </div>
-          );
-        })}
-        <div ref={bottomRef} />
-      </div>
+      <ChatBubbles
+        messages={messages}
+        userId={currentUserId}
+      />
 
       {/* Error */}
       {error && (

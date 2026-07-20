@@ -287,6 +287,7 @@ room.on(
         roomId: roomName,
         content: aiResponse ? aiResponse : "-",
         userId: String(botUser._id),
+        isBot: true,
       });
 
       isBotTyping = false;

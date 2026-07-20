@@ -10,6 +10,7 @@ export interface IMessage {
   roomId: string;
   userId: string;
   username?: string;
+  isBot?: boolean;
   content: string;
   createdAt: string;
 }
