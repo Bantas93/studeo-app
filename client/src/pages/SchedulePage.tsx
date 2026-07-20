@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import Swal from "sweetalert2";
 
 interface ISchedule {
   _id: string;
@@ -19,6 +20,7 @@ export default function SchedulePage() {
   const [description, setDescription] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
   const [schedules, setSchedules] = useState<ISchedule[]>([]);
+  const [error, setError] = useState("");
 
   const fetchData = async () => {
     try {
@@ -31,7 +33,7 @@ export default function SchedulePage() {
           },
         },
       );
-      console.log(data, "<<<<GEt DATA SCHEDULES");
+
       setSchedules(data);
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -49,10 +51,6 @@ export default function SchedulePage() {
     const date = new Date(meetingTime);
     date.setHours(date.getHours() + 7);
 
-    console.log(title, "<<<<TITLE");
-    console.log(description, "<<<<DESCRIPTION");
-    console.log(date.toISOString(), "<<<<<MEET TIME");
-
     const payload = {
       roomId,
       title,
@@ -61,35 +59,45 @@ export default function SchedulePage() {
     };
 
     try {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/schedules`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        },
-      );
-
-      console.log(data, "<<<<<<<DATA");
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
-      console.log(msg);
-    }
-  };
-
-  const handleDelete = async (_id: string) => {
-    console.log(_id, "<<<<ID HANDLE DELETE");
-
-    try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/schedules`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/schedules`, payload, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
-        params: { _id },
+      });
+
+      Swal.fire({
+        title: "Create Schedule Sucessful",
+        icon: "success",
+      });
+
+      fetchData();
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
+      setError(msg);
+    }
+  };
+
+  const handleDelete = async (_id: string) => {
+    try {
+      const result = await Swal.fire({
+        title: "Do you want delete?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes",
+      });
+
+      if (!result.isConfirmed) return;
+
+      await axios.delete(`${import.meta.env.VITE_API_URL}/schedules/${_id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
       });
 
       fetchData();
@@ -118,7 +126,9 @@ export default function SchedulePage() {
               <legend className="fieldset-legend text-base font-semibold">
                 Create Schedule
               </legend>
-
+              {error && (
+                <span className="text-center text-red-500">{error}</span>
+              )}
               <label className="label pt-1">Title</label>
               <input
                 type="text"
@@ -174,7 +184,9 @@ export default function SchedulePage() {
                       <th>{idx + 1}</th>
                       <td>{schedule?.title}</td>
                       <td>{schedule?.description}</td>
-                      <td>{schedule?.meetingTime}</td>
+                      <td>
+                        {schedule?.meetingTime.split(".")[0].replace("T", " ")}
+                      </td>
                       <td>
                         <button
                           className="btn btn-error btn-xs text-white"
