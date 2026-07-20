@@ -8,11 +8,12 @@ const openai = new OpenAI({
 type AskAIParams = {
   conversation: string;
   topic: string;
-}
+};
 
 export async function askAI(params: AskAIParams) {
-  const prompt = `Rangkum dengan singkat percakapan berikut ini.
-      Hubungkan dengan topik yang topik: ${params.topic}.
+  const prompt = `Rangkum percakapan berikut ini.
+      Hubungkan dengan topik: ${params.topic}.
+      respon berupa notulency rapat.
       Jika percakapan keluar dari topik maka rangkum percakapan tersebut tanpa dihubungkan ke topik.
       
       Percakapan: 
