@@ -1,9 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { socket } from "../lib/socket";
 
 interface IProps {
   roomId: string;
+  roomName: string;
 }
 
 interface ITodo {
@@ -16,7 +18,7 @@ interface ITodo {
   updatedAt: Date;
 }
 
-export default function ChatSidebar({ roomId: _roomId }: IProps) {
+export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
   const navigate = useNavigate();
   const [todos, setTodos] = useState<ITodo[]>([]);
 
@@ -39,6 +41,21 @@ export default function ChatSidebar({ roomId: _roomId }: IProps) {
 
   useEffect(() => {
     fetchData();
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const handleTodosUpdated = () => {
+      fetchData();
+    };
+
+    socket.on("todos_updated", handleTodosUpdated);
+
+    return () => {
+      socket.off("todos_updated", handleTodosUpdated);
+      socket.disconnect();
+    };
   }, []);
 
   const handleLeaveRoom = () => {
@@ -54,6 +71,8 @@ export default function ChatSidebar({ roomId: _roomId }: IProps) {
         },
         params: { _id },
       });
+
+      socket.emit("todos_changed");
       fetchData();
     } catch (error) {
       console.log(error);
@@ -78,7 +97,7 @@ export default function ChatSidebar({ roomId: _roomId }: IProps) {
           Leave Room
         </button>
         <Link
-          to={`/room/${_roomId}/create/todo`}
+          to={`/room/${roomName}-${_roomId}/create/todo`}
           className="btn btn-outline btn-sm w-full"
         >
           Create Todo
@@ -96,7 +115,7 @@ export default function ChatSidebar({ roomId: _roomId }: IProps) {
               >
                 <div className="absolute top-1 right-1 flex gap-1">
                   <Link
-                    to={`/room/${_roomId}/edit/todo/${todo._id}`}
+                    to={`/room/${roomName}-${_roomId}/edit/todo/${todo._id}`}
                     className="btn btn-ghost btn-xs text-xs"
                   >
                     📝

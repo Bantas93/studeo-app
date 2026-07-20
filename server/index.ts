@@ -54,6 +54,11 @@ io.on("connection", (socket) => {
     console.log(`[socket] rooms changed — broadcasting`);
     socket.broadcast.emit("rooms_updated");
   });
+
+  socket.on("todos_changed", () => {
+    console.log(`[socket] todos changed — broadcasting`);
+    socket.broadcast.emit("todos_updated");
+  });
 });
 
 httpServer.listen(port, () => {

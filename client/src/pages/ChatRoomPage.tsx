@@ -132,7 +132,7 @@ export default function ChatRoomPage() {
 
       <div className="drawer-side z-10">
         <label htmlFor="chat-drawer" className="drawer-overlay"></label>
-        <ChatSidebar roomId={roomId} />
+        <ChatSidebar roomId={roomId} roomName={roomName} />
       </div>
     </div>
   );

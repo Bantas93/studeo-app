@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
+import { socket } from "../lib/socket";
 
 interface Todo {
   roomId: string;
@@ -12,7 +13,10 @@ interface Todo {
 
 export default function CreateTodoPage() {
   const { id, todoId } = useParams<{ id: string; todoId: string }>();
-  const roomId = id || "";
+
+  const roomName = id?.split("-")[0] ?? "";
+  const roomId = id?.split("-")[1] ?? "";
+
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -77,7 +81,8 @@ export default function CreateTodoPage() {
         icon: "success",
       });
 
-      navigate(`/room/${roomId}`);
+      socket.emit("todos_changed");
+      navigate(`/room/${roomName}-${roomId}`);
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
       const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
@@ -113,7 +118,7 @@ export default function CreateTodoPage() {
           <button type="submit" className="btn btn-neutral mt-4">
             {todoId ? "Edit" : "Create"} Todo
           </button>
-          <Link to={`/room/${roomId}`} className="btn mt-4">
+          <Link to={`/room/${roomName}-${roomId}`} className="btn mt-4">
             back
           </Link>
         </fieldset>
