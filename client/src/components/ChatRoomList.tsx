@@ -2,6 +2,8 @@ import { useRef, useState, useEffect } from "react";
 import type { IMessage } from "../pages/ChatRoomPage";
 import { Link } from "react-router";
 import { formatTime } from "../helpers/formatTime";
+import { marked } from "marked";
+import { socket } from "../lib/socket";
 
 interface IProps {
   roomId: string;
@@ -23,11 +25,85 @@ export default function ChatRoomsList({
   onSendMessage,
 }: IProps) {
   const [draft, setDraft] = useState("");
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const currentUsername = (() => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return "";
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.username || "";
+    } catch {
+      return "";
+    }
+  })();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (draft.trim()) {
+      socket.emit("user_typing", {
+        roomId,
+        userId: currentUserId,
+        username: currentUsername,
+      });
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit("stop_typing", { roomId, userId: currentUserId });
+      }, 3000);
+    } else {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+      socket.emit("stop_typing", { roomId, userId: currentUserId });
+    }
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [draft, roomId, currentUserId, currentUsername]);
+
+  useEffect(() => {
+    const handleUserTyping = ({
+      userId,
+      username,
+    }: {
+      userId: string;
+      username: string;
+    }) => {
+      if (userId === currentUserId) return;
+      setTypingUsers((prev) => ({ ...prev, [userId]: username }));
+    };
+
+    const handleStopTyping = ({ userId }: { userId: string }) => {
+      setTypingUsers((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+    };
+
+    socket.on("user_typing", handleUserTyping);
+    socket.on("stop_typing", handleStopTyping);
+
+    return () => {
+      socket.off("user_typing", handleUserTyping);
+      socket.off("stop_typing", handleStopTyping);
+    };
+  }, [currentUserId]);
+
+  // ...
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +111,12 @@ export default function ChatRoomsList({
     if (!trimmed) return;
     onSendMessage(trimmed);
     setDraft("");
+    socket.emit("stop_typing", { roomId, userId: currentUserId });
   };
+
+  const typingList = Object.entries(typingUsers).filter(
+    ([uid]) => uid !== currentUserId,
+  );
 
   if (loading) {
     return (
@@ -75,7 +156,7 @@ export default function ChatRoomsList({
       </div>
 
       {/* Area Chat */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-x-hidden overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => {
           const isMe = msg.userId === currentUserId;
 
@@ -89,9 +170,11 @@ export default function ChatRoomsList({
               </div>
               <div
                 className={`chat-bubble ${isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
-              >
-                {msg.content}
-              </div>
+                dangerouslySetInnerHTML={{
+                  __html: marked.parse(msg.content, { breaks: true }),
+                }}
+              />
+
               <div className="chat-footer opacity-50 text-[10px] mt-1">
                 {formatTime(msg.createdAt)}
               </div>
@@ -104,6 +187,18 @@ export default function ChatRoomsList({
       {/* Error */}
       {error && (
         <div className="px-4 py-1 text-sm text-error bg-base-100">{error}</div>
+      )}
+
+      {/* ── Typing Indicator ── */}
+      {typingList.length > 0 && (
+        <div className="px-4 py-2 text-sm text-base-content/70 italic flex items-center gap-2">
+          <span className="loading loading-dots loading-xs"></span>
+          <span>
+            {typingList.length === 1
+              ? `${typingList[0][1]} sedang mengetik...`
+              : `${typingList.length} orang sedang mengetik...`}
+          </span>
+        </div>
       )}
 
       {/* Input Form */}
