@@ -10,6 +10,7 @@ import ChatRoomPage from "./pages/ChatRoomPage";
 import CallingPage from "./pages/CallingPage";
 import CreateTodoPage from "./pages/CreateTodoPage";
 import InviteMemberPage from "./pages/InviteMemberPage";
+import SchedulePage from "./pages/SchedulePage";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/room/create" element={<CreateRoomPage />} />
         <Route path="/room/:id/invite/member" element={<InviteMemberPage />} />
         <Route path="/room/:id/create/todo" element={<CreateTodoPage />} />
+        <Route path="/room/:id/schedule" element={<SchedulePage />} />
         <Route
           path="/room/:id/edit/todo/:todoId"
           element={<CreateTodoPage />}

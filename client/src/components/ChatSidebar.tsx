@@ -121,30 +121,43 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
 
       {/* Bagian Tombol Aksi */}
       <div className="flex flex-col gap-2">
-        <Link
-          to={`/room/${roomName}-${_roomId}/invite/member`}
-          className="btn btn-primary btn-sm w-full"
-        >
-          Invite Friends
-        </Link>
-        <button
-          className="btn btn-outline btn-sm w-full"
-          onClick={backToHomePage}
-        >
-          Back To Home Page
-        </button>
-        <button
-          className="btn btn-error btn-outline btn-sm w-full"
-          onClick={handleLeaveRoom}
-        >
-          Leave Room
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            to={`/room/${roomName}-${_roomId}/invite/member`}
+            className="btn btn-primary btn-sm"
+          >
+            Members
+          </Link>
+          <Link
+            to={`/room/${roomName}-${_roomId}/schedule`}
+            className="btn btn-outline btn-sm w-full"
+          >
+            + Schedule
+          </Link>
+        </div>
+
         <Link
           to={`/room/${roomName}-${_roomId}/create/todo`}
           className="btn btn-outline btn-sm w-full"
         >
           Create Todo
         </Link>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            className="btn btn-outline btn-sm w-full"
+            onClick={backToHomePage}
+          >
+            Home Page
+          </button>
+
+          <button
+            className="btn btn-error btn-outline btn-sm w-full"
+            onClick={handleLeaveRoom}
+          >
+            Leave Room
+          </button>
+        </div>
       </div>
 
       {/* Active Members - placeholder */}
