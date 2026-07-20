@@ -18,9 +18,9 @@ import { server } from "../config/dns";
 server();
 
 const SOCKET_SERVER_URL = process.env.SOCKET_SERVER_URL;
+const BOT_NAME = process.env.BOT_NAME;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const BOT_NAME = "recorder-bot";
 const room = new Room();
 let socketClient: ReturnType<typeof ioClient> | null = null;
 
