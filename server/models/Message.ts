@@ -9,6 +9,7 @@ export interface IMessage extends IMongoloquentSchema, IMongoloquentTimestamps {
   roomId: string;
   userId: string;
   content: string;
+  isBot?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,7 @@ export type MessageInput = {
   roomId: string;
   userId: string;
   content: string;
+  isBot?: boolean;
 };
 
 class Message extends Model<IMessage> {
