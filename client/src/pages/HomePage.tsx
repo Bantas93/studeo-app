@@ -15,6 +15,7 @@ interface IRoom {
   roomType: string;
   maxParticipants: number;
   creator: ICreator;
+  isMember: boolean;
 }
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -69,13 +70,17 @@ export default function HompePage() {
     };
   }, []);
 
-  const handleJoinRoom = async (roomId: string, roomName: string) => {
+  const handleJoinRoom = async (roomId: string, roomName: string, isMember: boolean) => {
     const token = localStorage.getItem("access_token");
     const userId = getCurrentUserId();
 
     if (!token || !userId) return;
 
     setJoiningRoomId(roomId);
+
+    if (isMember) {
+      navigate(`/room/${roomName}-${roomId}`);
+    }
 
     try {
       // Check if user is already a member
@@ -204,12 +209,14 @@ export default function HompePage() {
                       </button>
                       <button
                         className="btn btn-primary"
-                        onClick={() => handleJoinRoom(room._id.toString(), room.name)}
+                        onClick={() => handleJoinRoom(room._id.toString(), room.name, room.isMember)}
                         disabled={joiningRoomId === room._id.toString()}
                       >
                         {joiningRoomId === room._id.toString()
                           ? "Joining..."
-                          : "Join Room"}
+                          : room.isMember
+                            ? "Enter Room"
+                            : "Join Room"}
                       </button>
                     </div>
                   </div>
