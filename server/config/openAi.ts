@@ -13,7 +13,7 @@ type AskAIParams = {
 export async function askAI(params: AskAIParams) {
   const prompt = `Rangkum percakapan berikut ini.
       Hubungkan dengan topik: ${params.topic}.
-      respon berupa notulency rapat.
+      respon berupa notulency rapat berformat text.
       Jika percakapan keluar dari topik maka rangkum percakapan tersebut tanpa dihubungkan ke topik.
       
       Percakapan: 
