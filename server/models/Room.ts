@@ -7,6 +7,7 @@ import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
 import { ObjectId } from "mongodb";
 import User from "./User";
+import Message from "./Message";
 
 export interface IRoom extends IMongoloquentSchema, IMongoloquentTimestamps {
   name: string;
@@ -127,7 +128,7 @@ class Room extends Model<IRoom> {
     if (!findRoom) {
       throw new AppError("Anda bukan pemilik room", 401);
     }
-
+    await Message.where("roomId", _id).delete();
     return Room.where("_id", _id).delete();
   }
 }
