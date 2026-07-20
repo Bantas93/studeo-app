@@ -31,7 +31,7 @@ export default function SchedulePage() {
           },
         },
       );
-      console.log(data, "<<<<DATA SCHEDULES");
+      console.log(data, "<<<<GEt DATA SCHEDULES");
       setSchedules(data);
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -48,8 +48,9 @@ export default function SchedulePage() {
     e.preventDefault();
     const date = new Date(meetingTime);
     date.setHours(date.getHours() + 7);
-    //   console.log(title, "<<<<TITLE");
-    //   console.log(description, "<<<<DESCRIPTION");
+
+    console.log(title, "<<<<TITLE");
+    console.log(description, "<<<<DESCRIPTION");
     console.log(date.toISOString(), "<<<<<MEET TIME");
 
     const payload = {
@@ -66,8 +67,10 @@ export default function SchedulePage() {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
-    } catch (error) {
-      console.log(error);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
+      console.log(msg);
     }
   };
 
