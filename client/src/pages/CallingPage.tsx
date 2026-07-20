@@ -18,6 +18,29 @@ const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
 
 type CallMode = "video" | "voice";
 
+function LiveKitCssOverride() {
+  return (
+    <style>{`
+      .lk-participant-tile video,
+      .lk-participant-media-video {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        object-fit: cover !important;
+      }
+      .lk-grid-layout {
+        width: 100%;
+        height: 100%;
+      }
+      .lk-participant-tile {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+      }
+    `}</style>
+  );
+}
+
 function ParticipantTileWrapper({ mode }: { mode: CallMode }) {
   const trackRef = useMaybeTrackRefContext();
   if (!trackRef) {
@@ -25,13 +48,13 @@ function ParticipantTileWrapper({ mode }: { mode: CallMode }) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-full">
       <ParticipantTile />
       {mode === "voice" && (
         <div className="absolute inset-0 flex items-center justify-center bg-base-300 rounded-lg pointer-events-none">
           <div className="avatar placeholder">
-            <div className="bg-neutral text-neutral-content rounded-full w-20">
-              <span className="text-2xl">
+            <div className="bg-neutral text-neutral-content rounded-full w-16 sm:w-20">
+              <span className="text-xl sm:text-2xl">
                 {trackRef.participant.name?.slice(0, 2).toUpperCase() ||
                   trackRef.participant.identity.slice(0, 2).toUpperCase()}
               </span>
@@ -49,7 +72,7 @@ function RoomGrid({ mode }: { mode: CallMode }) {
   });
 
   return (
-    <GridLayout tracks={tracks}>
+    <GridLayout tracks={tracks} style={{ height: "100%", width: "100%" }}>
       <ParticipantTileWrapper mode={mode} />
     </GridLayout>
   );
@@ -94,8 +117,6 @@ export default function CallingPage() {
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
-        console.log(">>>> Token LiveKit:", data.token);
-        console.log(">>>> LiveKit URL:", LIVEKIT_URL);
         setLivekitToken(data.token);
         setConnecting(false);
       } catch {
@@ -106,9 +127,6 @@ export default function CallingPage() {
   }, [roomId, token, currentUsername]);
 
   const handleDisconnected = () => {
-    console.log(
-      "📋 Room selesai — cek terminal server untuk hasil transkrip suara (Groq + AI)",
-    );
     navigate(`/room/${roomName}-${roomId}`);
   };
 
@@ -136,32 +154,33 @@ export default function CallingPage() {
   }
 
   return (
-    <div className="h-screen bg-neutral text-neutral-content">
+    <div className="min-h-screen bg-neutral text-neutral-content flex flex-col">
+      <LiveKitCssOverride />
       <LiveKitRoom
         token={livekitToken}
         serverUrl={LIVEKIT_URL}
         video={mode === "video"}
         audio={true}
+        screen={false}
         onDisconnected={handleDisconnected}
-        className="h-full flex flex-col"
+        data-lk-theme="default"
+        className="h-full grid grid-col-3 min-h-0"
       >
         {/* Header */}
         <div className="flex justify-between items-center px-4 py-3 bg-neutral-focus shrink-0">
-          <div>
-            <h2 className="font-bold text-lg">
-              {mode === "video" ? "🎥 Video Call" : "📞 Voice Call"} — Room{" "}
-              {roomId}
-            </h2>
-          </div>
+          <h2 className="font-bold text-base sm:text-lg truncate">
+            {mode === "video" ? "🎥 Video Call" : "📞 Voice Call"} — Room:{" "}
+            {roomName}
+          </h2>
         </div>
 
         {/* Grid peserta */}
-        <div className="flex-1 overflow-hidden px-4 pb-4">
+        <div className="flex-1 min-h-0 px-2 sm:px-4 pb-2 sm:pb-4">
           <RoomGrid mode={mode} />
         </div>
 
         {/* Control bar */}
-        <div className="shrink-0">
+        <div className="relative flex justify-center items-end w-full">
           <ControlBar
             variation="verbose"
             controls={{
@@ -172,8 +191,6 @@ export default function CallingPage() {
             }}
           />
         </div>
-
-        {/* Renderer audio wajib agar suara terdengar */}
         <RoomAudioRenderer />
       </LiveKitRoom>
     </div>

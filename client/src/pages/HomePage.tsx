@@ -61,11 +61,14 @@ export default function HompePage() {
     const handleRoomsUpdated = () => {
       fetchData();
     };
+    const handleMembersInvite = () => fetchData();
 
     socket.on("rooms_updated", handleRoomsUpdated);
+    socket.on("members_updated", handleMembersInvite);
 
     return () => {
       socket.off("rooms_updated", handleRoomsUpdated);
+      socket.off("members_updated", handleMembersInvite);
       socket.disconnect();
     };
   }, []);
@@ -135,6 +138,7 @@ export default function HompePage() {
           params: { _id },
         });
         socket.emit("rooms_changed");
+        socket.emit("members_changed");
 
         Swal.fire({
           title: "Delete Sucesfull",
