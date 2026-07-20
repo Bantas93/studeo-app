@@ -23,7 +23,7 @@ export default function SchedulePage() {
   const fetchData = async () => {
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/schedules`,
+        `${import.meta.env.VITE_API_URL}/schedules/room/${roomId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -61,12 +61,18 @@ export default function SchedulePage() {
     };
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/schedules`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/schedules`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
         },
-      });
+      );
+
+      console.log(data, "<<<<<<<DATA");
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
       const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
