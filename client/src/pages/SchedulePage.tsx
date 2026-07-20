@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 
 interface ISchedule {
   _id: string;
@@ -134,9 +134,12 @@ export default function SchedulePage() {
                 onChange={(e) => setMeetingTime(e.target.value)}
               />
 
-              <button type="submit" className="btn btn-primary w-full mt-4">
+              <button type="submit" className="btn btn-primary w-full mt-2">
                 + Create Schedule
               </button>
+              <Link to={`/room/${roomName}-${roomId}`} className="btn mt-2">
+                back
+              </Link>
             </fieldset>
           </form>
         </div>
