@@ -71,6 +71,7 @@ class Room extends Model<IRoom> {
                 avatarUrl: user.avatarUrl,
               }
             : null,
+          isMember: roomIds.includes(String(room._id)),
         };
       }),
     );

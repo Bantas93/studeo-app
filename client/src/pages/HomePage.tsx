@@ -15,23 +15,35 @@ interface IRoom {
   roomType: string;
   maxParticipants: number;
   creator: ICreator;
+  isMember: boolean;
+}
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+function getCurrentUserId(): string {
+  const token = localStorage.getItem("access_token");
+  if (!token) return "";
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload._id || "";
+  } catch {
+    return "";
+  }
 }
 
 export default function HompePage() {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<IRoom[]>([]);
+  const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/rooms`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
+      const { data } = await axios.get(`${API_URL}/rooms`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
-      );
+      });
 
       setRooms(data);
     } catch (error) {
@@ -60,6 +72,50 @@ export default function HompePage() {
       socket.disconnect();
     };
   }, []);
+
+  const handleJoinRoom = async (roomId: string, roomName: string, isMember: boolean) => {
+    const token = localStorage.getItem("access_token");
+    const userId = getCurrentUserId();
+
+    if (!token || !userId) return;
+
+    setJoiningRoomId(roomId);
+
+    if (isMember) {
+      navigate(`/room/${roomName}-${roomId}`);
+    }
+
+    try {
+      // Check if user is already a member
+      const { data: members } = await axios.get<{ userId: string }[]>(
+        `${API_URL}/members/room/${roomId}`,
+      );
+
+      const isMember = members.some((m) => m.userId === userId);
+
+      if (!isMember) {
+        await axios.post(
+          `${API_URL}/members`,
+          { roomId, userId },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+      }
+
+      navigate(`/room/${roomName}-${roomId}`);
+    } catch {
+      Swal.fire({
+        title: "Gagal bergabung ke room",
+        icon: "error",
+      });
+    } finally {
+      setJoiningRoomId(null);
+    }
+  };
 
   const handleDeleteRoom = async (_id: string, name: string) => {
     try {
@@ -155,12 +211,17 @@ export default function HompePage() {
                       >
                         Delete
                       </button>
-                      <Link
-                        to={`/room/${room.name}-${room._id.toString()}`}
+                      <button
                         className="btn btn-primary"
+                        onClick={() => handleJoinRoom(room._id.toString(), room.name, room.isMember)}
+                        disabled={joiningRoomId === room._id.toString()}
                       >
-                        Join Room
-                      </Link>
+                        {joiningRoomId === room._id.toString()
+                          ? "Joining..."
+                          : room.isMember
+                            ? "Enter Room"
+                            : "Join Room"}
+                      </button>
                     </div>
                   </div>
                 </div>
