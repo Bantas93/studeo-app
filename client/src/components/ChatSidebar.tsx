@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import Swal from "sweetalert2";
 import { socket } from "../lib/socket";
 
 interface IProps {
@@ -58,8 +59,40 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
     };
   }, []);
 
-  const handleLeaveRoom = () => {
+  const backToHomePage = () => {
     navigate("/homepage");
+  };
+
+  const handleLeaveRoom = async () => {
+    const result = await Swal.fire({
+      title: "Leave Room?",
+      text: "You will be removed from this room.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Leave",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/members/room/${_roomId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        },
+      );
+
+      navigate("/homepage");
+    } catch {
+      Swal.fire({
+        title: "Gagal meninggalkan room",
+        icon: "error",
+      });
+    }
   };
 
   const handleDelete = async (_id: Object) => {
@@ -90,6 +123,12 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
         <Link to={`/room/${roomName}-${_roomId}/invite/member`} className="btn btn-primary btn-sm w-full">
           Invite Friends
         </Link>
+        <button
+          className="btn btn-outline btn-sm w-full"
+          onClick={backToHomePage}
+        >
+          Back To Home Page
+        </button>
         <button
           className="btn btn-error btn-outline btn-sm w-full"
           onClick={handleLeaveRoom}
