@@ -87,9 +87,9 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
 
       {/* Bagian Tombol Aksi */}
       <div className="flex flex-col gap-2">
-        <button className="btn btn-primary btn-sm w-full">
+        <Link to={`/room/${roomName}-${_roomId}/invite/member`} className="btn btn-primary btn-sm w-full">
           Invite Friends
-        </button>
+        </Link>
         <button
           className="btn btn-error btn-outline btn-sm w-full"
           onClick={handleLeaveRoom}
