@@ -152,7 +152,7 @@ export default function HompePage() {
                         Delete
                       </button>
                       <Link
-                        to={`/room/${room._id.toString()}`}
+                        to={`/room/${room.name}-${room._id.toString()}`}
                         className="btn btn-primary"
                       >
                         Join Room

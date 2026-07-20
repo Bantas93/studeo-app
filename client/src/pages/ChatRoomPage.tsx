@@ -18,7 +18,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ChatRoomPage() {
   const { id } = useParams<{ id: string }>();
-  const roomId = id ?? "";
+  const roomName = id?.split("-")[0] ?? "";
+  const roomId = id?.split("-")[1] ?? "";
 
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,6 +121,7 @@ export default function ChatRoomPage() {
       <div className="drawer-content flex flex-col h-full overflow-hidden">
         <ChatRoomsList
           roomId={roomId}
+          roomName={roomName}
           messages={messages}
           loading={loading}
           error={error}

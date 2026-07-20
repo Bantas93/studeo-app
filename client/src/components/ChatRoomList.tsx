@@ -5,6 +5,7 @@ import { formatTime } from "../helpers/formatTime";
 
 interface IProps {
   roomId: string;
+  roomName: string;
   messages: IMessage[];
   loading: boolean;
   error: string | null;
@@ -14,6 +15,7 @@ interface IProps {
 
 export default function ChatRoomsList({
   roomId,
+  roomName,
   messages,
   loading,
   error,
@@ -40,7 +42,7 @@ export default function ChatRoomsList({
       <div className="flex flex-col flex-1 h-full bg-base-100">
         <div className="navbar bg-base-200 border-b border-base-300 px-4">
           <span className="font-bold text-lg text-base-content">
-            Room Chat #{roomId}
+            Room Chat {roomName} <span>#{roomId}</span>
           </span>
         </div>
         <div className="flex items-center justify-center flex-1">
@@ -56,7 +58,8 @@ export default function ChatRoomsList({
       <div className="navbar bg-base-200 border-b border-base-300 px-4 flex justify-between">
         <div className="flex justify-between w-full">
           <span className="font-bold text-lg text-base-content">
-            Room Chat #{roomId}
+            Room Chat : {roomName.toUpperCase()}{" "}
+            <span className="text-xs font-extralight">#{roomId}</span>
           </span>
           <Link to={`/room/calling/${roomId}`} className="btn">
             Video/Voice Call
