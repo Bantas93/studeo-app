@@ -79,6 +79,11 @@ export default function HompePage() {
           params: { _id },
         });
         socket.emit("rooms_changed");
+
+        Swal.fire({
+          title: "Delete Sucesfull",
+          icon: "success",
+        });
         fetchData();
       }
     } catch (error: unknown) {
