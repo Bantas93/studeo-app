@@ -9,20 +9,27 @@ import { AppError } from "../middleware/errorHandler";
 export interface ISchedule
   extends IMongoloquentSchema, IMongoloquentTimestamps {
   title: string;
+  description?: string;
+  roomId: string;
   meetingTime: Date;
+  isEmitted?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export type ScheduleInput = {
   title: string;
+  description?: string;
+  roomId: string;
   meetingTime: Date;
+  isEmitted?: boolean;
 };
 
 export type ScheduleUpdateInput = Partial<ScheduleInput>;
 
 const scheduleCreateSchema = z.object({
   title: z.string().trim().min(1, "Judul jadwal tidak boleh kosong"),
+  roomId: z.string().trim().min(1, "Room ID wajib diisi"),
   meetingTime: z
     .string()
     .datetime({ message: "Format meetingTime harus ISO Date String" })
@@ -73,6 +80,11 @@ class Schedule extends Model<ISchedule> {
 
     await Schedule.getScheduleById(id);
     return Schedule.where("_id", id).update(result.data);
+  }
+
+  static async update(schedule: ISchedule, payload: ScheduleUpdateInput) {
+    const id = String(schedule._id);
+    return Schedule.where("_id", id).update(payload);
   }
 
   static async deleteSchedule(id: string) {

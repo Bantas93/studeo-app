@@ -7,6 +7,8 @@ import http from "http";
 import { Server } from "socket.io";
 import Routes from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
+import { setIO } from "./lib/socket";
+import { startScheduleNotifier } from "./services/schedule-notifier";
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
@@ -25,6 +27,9 @@ const io = new Server(httpServer, {
     origin: "*",
   },
 });
+
+setIO(io);
+startScheduleNotifier();
 
 io.on("connection", (socket) => {
   console.log(`[socket] connected: ${socket.id}`);
