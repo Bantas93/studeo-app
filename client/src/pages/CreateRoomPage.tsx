@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
+import { socket } from "../lib/socket";
 
 interface Subject {
   _id: string;
@@ -63,6 +64,7 @@ export default function CreateRoomPage() {
         icon: "success",
       });
 
+      socket.emit("rooms_changed");
       navigate("/homepage");
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;

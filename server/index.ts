@@ -49,6 +49,11 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`[socket] disconnected: ${socket.id}`);
   });
+
+  socket.on("rooms_changed", () => {
+    console.log(`[socket] rooms changed — broadcasting`);
+    socket.broadcast.emit("rooms_updated");
+  });
 });
 
 httpServer.listen(port, () => {

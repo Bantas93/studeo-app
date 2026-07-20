@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
+import { socket } from "../lib/socket";
 
 interface ICreator {
   username: string;
@@ -40,6 +41,21 @@ export default function HompePage() {
 
   useEffect(() => {
     fetchData();
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const handleRoomsUpdated = () => {
+      fetchData();
+    };
+
+    socket.on("rooms_updated", handleRoomsUpdated);
+
+    return () => {
+      socket.off("rooms_updated", handleRoomsUpdated);
+      socket.disconnect();
+    };
   }, []);
 
   const handleDeleteRoom = async (_id: string, name: string) => {
@@ -62,6 +78,7 @@ export default function HompePage() {
           },
           params: { _id },
         });
+        socket.emit("rooms_changed");
         fetchData();
       }
     } catch (error: unknown) {
