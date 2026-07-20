@@ -59,6 +59,30 @@ io.on("connection", (socket) => {
     console.log(`[socket] todos changed — broadcasting`);
     socket.broadcast.emit("todos_updated");
   });
+
+  socket.on(
+    "user_typing",
+    ({
+      roomId,
+      userId,
+      username,
+    }: {
+      roomId: string;
+      userId: string;
+      username: string;
+    }) => {
+      if (!roomId) return;
+      socket.to(roomId).emit("user_typing", { userId, username });
+    },
+  );
+
+  socket.on(
+    "stop_typing",
+    ({ roomId, userId }: { roomId: string; userId: string }) => {
+      if (!roomId) return;
+      socket.to(roomId).emit("stop_typing", { userId });
+    },
+  );
 });
 
 httpServer.listen(port, () => {
