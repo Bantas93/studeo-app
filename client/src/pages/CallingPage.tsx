@@ -8,7 +8,8 @@ import {
   ControlBar,
   GridLayout,
   ParticipantTile,
-  useTracks, useMaybeTrackRefContext,
+  useTracks,
+  useMaybeTrackRefContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
@@ -57,8 +58,9 @@ function RoomGrid({ mode }: { mode: CallMode }) {
 export default function CallingPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const roomName = id?.split("-")[0] ?? "";
+  const roomId = id?.split("-")[1] ?? "";
   const [searchParams] = useSearchParams();
-  const roomId = id ?? "";
   const mode: CallMode =
     searchParams.get("mode") === "voice" ? "voice" : "video";
 
@@ -107,7 +109,7 @@ export default function CallingPage() {
     console.log(
       "📋 Room selesai — cek terminal server untuk hasil transkrip suara (Groq + AI)",
     );
-    navigate(`/room/${roomId}`);
+    navigate(`/room/${roomName}-${roomId}`);
   };
 
   if (connecting) {
@@ -125,7 +127,7 @@ export default function CallingPage() {
         <p className="text-error text-lg">{error || "Token tidak tersedia"}</p>
         <button
           className="btn btn-outline"
-          onClick={() => navigate(`/room/${roomId}`)}
+          onClick={() => navigate(`/room/${roomName}-${roomId}`)}
         >
           Kembali ke Room
         </button>

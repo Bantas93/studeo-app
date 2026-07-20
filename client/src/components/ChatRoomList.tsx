@@ -61,7 +61,7 @@ export default function ChatRoomsList({
             Room Chat : {roomName.toUpperCase()}{" "}
             <span className="text-xs font-extralight">#{roomId}</span>
           </span>
-          <Link to={`/room/calling/${roomId}`} className="btn">
+          <Link to={`/room/calling/${roomName}-${roomId}`} className="btn">
             Video/Voice Call
           </Link>
         </div>
