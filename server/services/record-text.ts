@@ -322,6 +322,7 @@ room.on(RoomEvent.Disconnected, async (reason) => {
 
   console.log(`Room disconnected.`, reason);
   console.log("Room telah kosong — semua participant sudah leave.");
+  process.exit(0);
 });
 
 async function main() {

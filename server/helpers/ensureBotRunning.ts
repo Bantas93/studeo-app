@@ -3,6 +3,7 @@ import path from "path";
 
 const runningBots = new Map<string, ChildProcess>();
 export function ensureBotRunning(roomName: string): void {
+  console.log("roomName", roomName, "runningBots: ", runningBots.has(roomName));
   if (runningBots.has(roomName)) {
     return;
   }
