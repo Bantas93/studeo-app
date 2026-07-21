@@ -116,7 +116,7 @@ export default function ChatRoomPage() {
   };
 
   return (
-    <div className="drawer lg:drawer-open drawer-end h-screen overflow-hidden">
+    <div className="drawer lg:drawer-open drawer-end h-screen overflow-hidden bg-linear-to-l from-primary/95 to-info/50">
       <input id="chat-drawer" type="checkbox" className="drawer-toggle" />
 
       <div className="drawer-content flex flex-col h-full overflow-hidden">

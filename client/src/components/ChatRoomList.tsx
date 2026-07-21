@@ -126,15 +126,18 @@ export default function ChatRoomsList({
   }
 
   return (
-    <div className="flex flex-col flex-1 h-full bg-base-100">
+    <div className="flex flex-col flex-1 h-full bg-base-100/60 backdrop-blur">
       {/* Header Chat */}
-      <div className="navbar bg-base-200 border-b border-base-300 px-4 flex justify-between">
+      <div className="navbar bg-base-200/60 backdrop-blur border-b border-base-300 px-4 flex justify-between">
         <div className="flex justify-between w-full">
           <span className="font-bold text-lg text-base-content">
             Room Chat : {roomName.toUpperCase()}{" "}
             <span className="text-xs font-extralight">#{roomId}</span>
           </span>
-          <Link to={`/room/calling/${roomName}-${roomId}`} className="btn">
+          <Link
+            to={`/room/calling/${roomName}-${roomId}`}
+            className="btn btn-primary btn-sm"
+          >
             Video/Voice Call
           </Link>
         </div>
@@ -148,10 +151,7 @@ export default function ChatRoomsList({
       </div>
 
       {/* Area Chat */}
-      <ChatBubbles
-        messages={messages}
-        userId={currentUserId}
-      />
+      <ChatBubbles messages={messages} userId={currentUserId} />
 
       {/* Error */}
       {error && (
@@ -173,7 +173,7 @@ export default function ChatRoomsList({
       {/* Input Form */}
       <form
         onSubmit={handleSubmit}
-        className="p-4 bg-base-200 border-t border-base-300 flex gap-2"
+        className="p-4 bg-base-200/60 backdrop-blur border-t border-base-300 flex gap-2"
       >
         <input
           type="text"
@@ -182,7 +182,7 @@ export default function ChatRoomsList({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <button type="submit" className="btn btn-neutral">
+        <button type="submit" className="btn btn-primary">
           Kirim
         </button>
       </form>

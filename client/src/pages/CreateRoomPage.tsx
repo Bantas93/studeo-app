@@ -76,9 +76,9 @@ export default function CreateRoomPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="min-h-screen bg-linear-to-l from-primary/95 to-info/50 flex justify-center items-center p-4">
       <form onSubmit={handleSubmit}>
-        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+        <fieldset className="fieldset bg-base-100/80 backdrop-blur border-base-300 rounded-box w-xs border p-4">
           <legend className="fieldset-legend">Create Room</legend>
           {error && <p className="text-red-500 text-center">{error}</p>}
           <label className="label">Topic</label>
@@ -125,11 +125,11 @@ export default function CreateRoomPage() {
             onChange={(e) => setMaxParticipants(e.target.value)}
           />
 
-          <button type="submit" className="btn btn-neutral mt-4">
+          <button type="submit" className="btn btn-primary mt-4">
             Create room
           </button>
-          <Link to={"/homepage"} className="btn mt-4">
-            back
+          <Link to={"/homepage"} className="btn btn-outline mt-2">
+            ← Back
           </Link>
         </fieldset>
       </form>

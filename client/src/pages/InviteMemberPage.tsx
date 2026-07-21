@@ -120,8 +120,8 @@ export default function InviteMemberPage() {
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+    <div className="min-h-screen bg-linear-to-l from-primary/95 to-info/50 flex justify-center items-center p-4">
+      <fieldset className="fieldset bg-base-100/80 backdrop-blur border-base-300 rounded-box w-xs border p-4">
         <legend className="fieldset-legend">Invite Member</legend>
 
         {error && <p className="text-red-500 text-center">{error}</p>}
@@ -223,7 +223,7 @@ export default function InviteMemberPage() {
 
         <Link
           to={`/room/${roomName}-${roomId}`}
-          className="btn btn-neutral mt-4 w-full"
+          className="btn btn-outline mt-4 w-full"
         >
           Back to Room
         </Link>

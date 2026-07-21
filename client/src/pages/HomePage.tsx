@@ -35,6 +35,7 @@ export default function HompePage() {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
@@ -50,6 +51,8 @@ export default function HompePage() {
       const axiosError = error as AxiosError<{ message: string }>;
       const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
       console.log(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,8 +77,10 @@ export default function HompePage() {
       const subject = data.room?.subject ?? "";
 
       Swal.fire({
-        title: `📅 ${roomName}`,
-        text: `Subject: ${subject} Meeting at ${new Date(data.meetingTime)
+        title: `📅 ${roomName.toUpperCase()}`,
+        text: `Subject: ${subject.toUpperCase()}, Meeting at ${new Date(
+          data.meetingTime,
+        )
           .toISOString()
           .split(".")[0]
           .replace("T", " ")}`,
@@ -221,8 +226,9 @@ export default function HompePage() {
       console.log(msg);
     }
   };
+
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen bg-linear-to-l from-primary/95 to-info/50 p-6">
       <div className="flex flex-col gap-4">
         <div className="flex justify-between gap-4">
           <div className="flex gap-4">
@@ -246,58 +252,66 @@ export default function HompePage() {
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-3 md:grid-cols-2 sm-grid-cols-1 gap-4">
-          {rooms &&
-            rooms.map((room) => {
-              return (
-                <div
-                  className="card bg-base-100 card-md shadow-sm"
-                  key={room._id.toString()}
-                >
-                  <div className="card-body">
-                    <div className="card-title justify-between">
-                      <div>
-                        Topic : <span>{room.name.toUpperCase()}</span>
-                      </div>
-                      <div className="badge-xs -me-4 -mt-12">
-                        by : {room.creator.username}
-                      </div>
+        <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-4">
+          {loading ? (
+            <div className="col-span-full flex items-center justify-center py-32">
+              <span className="loading loading-infinity loading-xl text-primary" />
+            </div>
+          ) : rooms.length === 0 ? (
+            <div className="col-span-full text-center py-16 text-base-content/50">
+              <p className="text-lg">Belum ada room</p>
+              <p className="text-sm mt-1">Buat room baru untuk memulai!</p>
+            </div>
+          ) : (
+            rooms.map((room) => (
+              <div
+                className="card bg-base-100/80 backdrop-blur card-md shadow-sm hover:shadow-md transition-shadow border border-base-300/50"
+                key={String(room._id)}
+              >
+                <div className="card-body">
+                  <div className="card-title justify-between">
+                    <div>
+                      Topic : <span>{room.name.toUpperCase()}</span>
                     </div>
-                    <p className="-mt-3">Mata pelajaran : {room.subject}</p>
-                    <p
-                      className={`badge badge-soft ${room.roomType === "public" ? `badge-primary` : `badge-warning`}`}
-                    >
-                      {room.roomType}
-                    </p>
-                    <div className="justify-end card-actions">
-                      <button
-                        className="btn btn-error text-white"
-                        onClick={() => handleDeleteRoom(room._id, room.name)}
-                      >
-                        Delete
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() =>
-                          handleJoinRoom(
-                            room._id.toString(),
-                            room.name,
-                            room.isMember,
-                          )
-                        }
-                        disabled={joiningRoomId === room._id.toString()}
-                      >
-                        {joiningRoomId === room._id.toString()
-                          ? "Joining..."
-                          : room.isMember
-                            ? "Enter Room"
-                            : "Join Room"}
-                      </button>
+                    <div className="badge-xs -me-4 -mt-12">
+                      by : {room.creator.username}
                     </div>
                   </div>
+                  <p className="-mt-3">Mata pelajaran : {room.subject}</p>
+                  <p
+                    className={`badge badge-soft ${room.roomType === "public" ? `badge-primary` : `badge-warning`}`}
+                  >
+                    {room.roomType}
+                  </p>
+                  <div className="justify-end card-actions">
+                    <button
+                      className="btn btn-error text-white"
+                      onClick={() => handleDeleteRoom(room._id, room.name)}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() =>
+                        handleJoinRoom(
+                          room._id.toString(),
+                          room.name,
+                          room.isMember,
+                        )
+                      }
+                      disabled={joiningRoomId === room._id.toString()}
+                    >
+                      {joiningRoomId === room._id.toString()
+                        ? "Joining..."
+                        : room.isMember
+                          ? "Enter Room"
+                          : "Join Room"}
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

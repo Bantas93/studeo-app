@@ -109,10 +109,10 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-linear-to-l from-primary/95 to-info/50 p-4 md:p-6 lg:p-8 space-y-6">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-xl md:text-2xl font-bold">
-          Schedule &mdash; {roomName}
+          Schedule : {roomName.toUpperCase()}
         </h1>
         <p className="text-sm text-base-content/50">
           Room ID: <span className="font-mono text-xs">#{roomId}</span>
@@ -122,7 +122,7 @@ export default function SchedulePage() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <form onSubmit={handleSubmit}>
-            <fieldset className="fieldset bg-base-100 border border-base-300 rounded-box p-4">
+            <fieldset className="fieldset bg-base-100/80 backdrop-blur border border-base-300 rounded-box p-4">
               <legend className="fieldset-legend text-base font-semibold">
                 Create Schedule
               </legend>
@@ -158,15 +158,18 @@ export default function SchedulePage() {
               <button type="submit" className="btn btn-primary w-full mt-2">
                 + Create Schedule
               </button>
-              <Link to={`/room/${roomName}-${roomId}`} className="btn mt-2">
-                back
+              <Link
+                to={`/room/${roomName}-${roomId}`}
+                className="btn btn-outline mt-2"
+              >
+                ← Back
               </Link>
             </fieldset>
           </form>
         </div>
 
         <div className="lg:col-span-2">
-          <div className="overflow-x-auto rounded-box border border-base-300 bg-base-100">
+          <div className="overflow-x-auto rounded-box border border-base-300 bg-base-100/80 backdrop-blur">
             <table className="table table-sm sm:table-md table-zebra">
               <thead>
                 <tr>

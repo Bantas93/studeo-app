@@ -1,18 +1,17 @@
-import {marked} from "marked";
-import {formatTime} from "../helpers/formatTime.tsx";
-import type {IMessage} from "../pages/ChatRoomPage.tsx";
-import {useEffect, useRef} from "react";
+import { marked } from "marked";
+import { formatTime } from "../helpers/formatTime.tsx";
+import type { IMessage } from "../pages/ChatRoomPage.tsx";
+import { useEffect, useRef } from "react";
 
 interface ChatBubbleInput {
-  messages: IMessage[],
-  userId: string,
+  messages: IMessage[];
+  userId: string;
 }
 
 export default function ChatBubbles(input: ChatBubbleInput) {
-  const {messages, userId} = input;
+  const { messages, userId } = input;
 
   const bottomRef = useRef<HTMLDivElement>(null);
-
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,14 +32,14 @@ export default function ChatBubbles(input: ChatBubbleInput) {
             </div>
             {msg.isBot ? (
               <div
-                className={`chat-bubble overflow-auto text-ellipsis bg-base-300 border-l-4 border-secondary`}
+                className="chat-bubble overflow-auto text-ellipsis bg-secondary/10 border-l-4 border-secondary backdrop-blur"
                 dangerouslySetInnerHTML={{
                   __html: marked.parse(msg.content, { breaks: true }),
                 }}
               />
             ) : (
               <div
-                className={`chat-bubble text-ellipsis ${isMe ? "chat-bubble-neutral" : "chat-bubble-primary"}`}
+                className={`chat-bubble text-ellipsis backdrop-blur ${isMe ? "bg-primary text-primary-content" : "bg-base-100"}`}
               >
                 {msg.content}
               </div>

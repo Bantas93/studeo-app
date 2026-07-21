@@ -117,7 +117,7 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
     }
   };
   return (
-    <div className="w-80 min-h-screen bg-base-200 p-4 border-l border-base-300 flex flex-col gap-4">
+    <div className="w-80 min-h-screen bg-base-100/90 backdrop-blur p-4 border-l border-base-300 flex flex-col gap-4">
       {/* Judul Panel */}
       <h3 className="font-bold text-lg border-b border-base-300 pb-2 text-base-content">
         Room Information
@@ -170,7 +170,7 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
           todos.map((todo) => {
             return (
               <div
-                className="card bg-base-100 shadow-sm border border-base-300 relative"
+                className="card bg-base-200 shadow-sm border border-base-300 relative"
                 key={String(todo._id)}
               >
                 <div className="absolute top-1 right-1 flex gap-1">
