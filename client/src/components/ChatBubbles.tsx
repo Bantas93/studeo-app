@@ -2,6 +2,7 @@ import { formatTime } from "../helpers/formatTime.tsx";
 import type { IMessage } from "../pages/ChatRoomPage.tsx";
 import { useEffect, useRef } from "react";
 import Markdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 
 interface ChatBubbleInput {
   messages: IMessage[];
@@ -34,7 +35,7 @@ export default function ChatBubbles(input: ChatBubbleInput) {
               <div
                 className="chat-bubble overflow-auto text-ellipsis bg-secondary/10 border-l-4 border-secondary backdrop-blur"
               >
-                <Markdown>{msg.content}</Markdown>
+                <Markdown remarkPlugins={[remarkBreaks]}>{msg.content}</Markdown>
               </div>
             ) : (
               <div
