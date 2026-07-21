@@ -305,6 +305,9 @@ room.on(
           username: BOT_NAME,
         });
       }
+
+      await room.disconnect();
+      socketClient?.disconnect();
     }
   },
 );
