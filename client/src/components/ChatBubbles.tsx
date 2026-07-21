@@ -1,7 +1,7 @@
-import { marked } from "marked";
 import { formatTime } from "../helpers/formatTime.tsx";
 import type { IMessage } from "../pages/ChatRoomPage.tsx";
 import { useEffect, useRef } from "react";
+import Markdown from "react-markdown";
 
 interface ChatBubbleInput {
   messages: IMessage[];
@@ -33,13 +33,12 @@ export default function ChatBubbles(input: ChatBubbleInput) {
             {msg.isBot ? (
               <div
                 className="chat-bubble overflow-auto text-ellipsis bg-secondary/10 border-l-4 border-secondary backdrop-blur"
-                dangerouslySetInnerHTML={{
-                  __html: marked.parse(msg.content, { breaks: true }),
-                }}
-              />
+              >
+                <Markdown>{msg.content}</Markdown>
+              </div>
             ) : (
               <div
-                className={`chat-bubble text-ellipsis backdrop-blur ${isMe ? "bg-primary text-primary-content" : "bg-base-100"}`}
+                className={`chat-bubble text-ellipsis whitespace-pre-wrap backdrop-blur ${isMe ? "bg-primary text-primary-content" : "bg-base-100"}`}
               >
                 {msg.content}
               </div>

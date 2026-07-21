@@ -97,8 +97,7 @@ export default function ChatRoomsList({
     };
   }, [currentUserId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     const trimmed = draft.trim();
     if (!trimmed) return;
     onSendMessage(trimmed);
@@ -172,15 +171,24 @@ export default function ChatRoomsList({
 
       {/* Input Form */}
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
         className="p-4 bg-base-200/60 backdrop-blur border-t border-base-300 flex gap-2"
       >
-        <input
-          type="text"
+        <textarea
           placeholder="Tulis pesan di sini..."
-          className="input input-bordered flex-1"
+          className="textarea textarea-bordered flex-1 resize-none"
+          rows={1}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
         />
         <button type="submit" className="btn btn-primary">
           Kirim

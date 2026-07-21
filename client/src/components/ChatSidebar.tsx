@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { socket } from "../lib/socket";
-import { marked } from "marked";
+import Markdown from "react-markdown";
 
 interface IProps {
   roomId: string;
@@ -198,10 +198,9 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
                           [&_code]:bg-base-200 [&_code]:px-1 [&_code]:rounded [&_code]:text-xs
                           [&_pre]:bg-base-200 [&_pre]:p-2 [&_pre]:rounded-box [&_pre]:overflow-x-auto [&_pre]:text-xs
                           [&_a]:link [&_a]:link-primary"
-                    dangerouslySetInnerHTML={{
-                      __html: marked.parse(todo.description, { breaks: true }),
-                    }}
-                  />
+                  >
+                    <Markdown>{todo.description}</Markdown>
+                  </div>
                 </div>
               </div>
             );
