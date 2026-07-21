@@ -196,7 +196,7 @@ export default function InviteMemberPage() {
           {memberUsers.length === 0 ? (
             <p className="text-sm text-base-content/50">No members yet</p>
           ) : (
-            <ul className="bg-base-100 rounded-box divide-y divide-base-200">
+            <ul className="bg-base-100 rounded-box divide-y divide-base-200 max-h-48 overflow-y-auto">
               {memberUsers.map((user) => (
                 <li
                   key={user._id}
