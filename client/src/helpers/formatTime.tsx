@@ -1,32 +1,22 @@
 export function formatTime(dateStr: string): string {
+  // ini cth date string: 2026-07-22T01:30:40.000Z (menunjukkan waktu WIB) (format ISO UTC)
+  //  sehingga "now" harus + 7
   const date = new Date(dateStr);
-  date.setHours(date.getHours() - 7); // sesuaikan ke WIB
 
   const now = new Date();
-  now.setHours(now.getHours() - 7);
 
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dateStart = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
+  now.setHours(now.getHours() + 7);
+
+  const diffDays = Math.round(
+    Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
   );
-
-  const diffDays = Math.floor(
-    (todayStart.getTime() - dateStart.getTime()) / (1000 * 60 * 60 * 24),
-  );
-
-  const timeStr = date.toLocaleString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
   if (diffDays === 0) {
-    return timeStr;
+    return `${date.getUTCHours().toString().padStart(2, "0")}:${date.getUTCMinutes().toString().padStart(2, "0")}`;
   }
 
   if (diffDays === 1) {
-    return `Kemarin ${timeStr}`;
+    return `Kemarin ${date.getUTCHours().toString().padStart(2, "0")}:${date.getUTCMinutes().toString().padStart(2, "0")}`;
   }
 
   const dateStr_ = date.toLocaleString("id-ID", {
@@ -34,5 +24,6 @@ export function formatTime(dateStr: string): string {
     month: "2-digit",
     year: "numeric",
   });
-  return `${dateStr_} ${timeStr}`;
+
+  return `${dateStr_} ${date.getUTCHours().toString().padStart(2, "0")}:${date.getUTCMinutes().toString().padStart(2, "0")}`;
 }
