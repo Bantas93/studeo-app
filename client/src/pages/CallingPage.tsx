@@ -21,6 +21,13 @@ type CallMode = "video" | "voice";
 function LiveKitCssOverride() {
   return (
     <style>{`
+      /* ── Participant tile ── */
+      .lk-participant-tile {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        aspect-ratio: 4 / 3;
+      }
       .lk-participant-tile video,
       .lk-participant-media-video {
         width: 100% !important;
@@ -28,14 +35,26 @@ function LiveKitCssOverride() {
         max-width: none !important;
         object-fit: cover !important;
       }
+
+      /* ── Grid layout — let LiveKit manage columns, we just fix sizing ── */
       .lk-grid-layout {
-        width: 100%;
-        height: 100%;
+        width: 100% !important;
+        height: 100% !important;
+        gap: 0.5rem !important;
+        padding: 0.5rem !important;
       }
-      .lk-participant-tile {
-        position: relative;
-        overflow: hidden;
-        border-radius: 0.5rem;
+
+      /* ── Control bar ── */
+      .lk-control-bar {
+        background: transparent !important;
+        padding: 0.75rem !important;
+      }
+
+      /* ── Room container fill height ── */
+      .lk-room-container {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
       }
     `}</style>
   );
@@ -67,7 +86,12 @@ function ParticipantTileWrapper({ mode }: { mode: CallMode }) {
 }
 
 function RoomGrid({ mode }: { mode: CallMode }) {
-  const tracks = useTracks([Track.Source.Camera, Track.Source.Microphone], {
+  const trackSources =
+    mode === "video"
+      ? [Track.Source.Camera]
+      : [Track.Source.Microphone];
+
+  const tracks = useTracks(trackSources, {
     onlySubscribed: false,
   });
 
@@ -164,7 +188,7 @@ export default function CallingPage() {
         screen={false}
         onDisconnected={handleDisconnected}
         data-lk-theme="default"
-        className="h-full grid grid-col-3 min-h-0"
+        className="flex-1 flex flex-col min-h-0"
       >
         {/* Header */}
         <div className="flex justify-between items-center px-4 py-3 bg-neutral-focus shrink-0">
