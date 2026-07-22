@@ -91,7 +91,7 @@ export default function CreateRoomPage() {
             onChange={(e) => setName(e.target.value)}
           />
 
-          <label className="label">type</label>
+          <label className="label">Type Room</label>
           <select
             defaultValue={""}
             className="select appearance-none"
@@ -104,21 +104,47 @@ export default function CreateRoomPage() {
             <option value={"private"}>Private</option>
           </select>
 
-          <label className="label">subject</label>
-          <select
-            defaultValue={""}
-            className="select appearance-none"
-            onChange={(e) => setSelectedSubject(e.target.value)}
-          >
-            <option value={""} disabled>
-              Select subjects
-            </option>
-            {subjects.map((subj) => (
-              <option key={subj._id} value={subj.name}>
-                {subj.name.toUpperCase()}
-              </option>
-            ))}
-          </select>
+          <label className="label">Subject</label>
+          <div className="dropdown dropdown-bottom w-full">
+            <button
+              type="button"
+              tabIndex={0}
+              className="btn w-full justify-between"
+            >
+              {selectedSubject || "Select subjects"}
+              <svg
+                className="w-4 h-4 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu bg-base-100 rounded-box z-10 w-full shadow max-h-48 overflow-y-auto flex-nowrap"
+            >
+              {subjects.map((subj) => (
+                <li key={subj._id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSubject(subj.name);
+                      (document.activeElement as HTMLElement)?.blur();
+                    }}
+                  >
+                    {subj.name.toUpperCase()}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <label className="label">Max Participants</label>
           <input
