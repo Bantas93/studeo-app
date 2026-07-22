@@ -146,10 +146,11 @@ export default function CreateRoomPage() {
             </ul>
           </div>
 
-          <label className="label">Max Participants</label>
+          <label className="label">Participants</label>
           <input
             type="number"
             className="input"
+            placeholder="Minimal 10 participants"
             onChange={(e) => setMaxParticipants(e.target.value)}
           />
 
