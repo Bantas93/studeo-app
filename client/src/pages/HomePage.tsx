@@ -186,7 +186,7 @@ export default function HompePage() {
           params: { _id },
         });
         socket.emit("rooms_changed");
-        socket.emit("members_changed");
+        socket.emit("members_changed", { roomId: _id });
 
         Swal.fire({
           title: "Delete Sucesfull",
