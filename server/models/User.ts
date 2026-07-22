@@ -86,7 +86,7 @@ class User extends Model<IUser> {
 
     validPayload.password = hashPassword(validPayload.password);
 
-    const checkUser = await User.create(validPayload);
+    const checkUser = await User.create({...validPayload, username: validPayload.username.toLowerCase()});
     const { password, ...user } = checkUser as IUser & { password?: string };
 
     return user;
