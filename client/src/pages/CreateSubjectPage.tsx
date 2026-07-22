@@ -41,7 +41,9 @@ export default function CreateSubjectPage() {
     <div className="min-h-screen bg-linear-to-l from-primary/95 to-info/50 flex justify-center items-center p-4">
       <form onSubmit={handleSubmit}>
         <fieldset className="fieldset bg-base-100/80 backdrop-blur border-base-300 rounded-box w-xs border p-4">
-          <legend className="fieldset-legend">Create Subject</legend>
+          <div className="text-center font-bold text-xl mb-4 opacity-85">
+            Create Subject
+          </div>
           {error && <p className="text-red-500 text-center">{error}</p>}
           <label className="label">Subject</label>
           <input

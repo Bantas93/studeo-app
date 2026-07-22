@@ -292,7 +292,7 @@ export default function HompePage() {
                       Delete
                     </button>
                     <button
-                      className="btn btn-primary"
+                      className={`btn ${room.isMember ? "btn-outline btn-info text-black" : "btn-primary"}`}
                       onClick={() =>
                         handleJoinRoom(
                           room._id.toString(),

@@ -122,9 +122,9 @@ export default function SchedulePage() {
         <div className="lg:col-span-1">
           <form onSubmit={handleSubmit}>
             <fieldset className="fieldset bg-base-100/80 backdrop-blur border border-base-300 rounded-box p-4">
-              <legend className="fieldset-legend text-base font-semibold">
+              <div className="text-center font-bold text-xl mb-4 opacity-85">
                 Create Schedule
-              </legend>
+              </div>
               {error && (
                 <span className="text-center text-red-500">{error}</span>
               )}

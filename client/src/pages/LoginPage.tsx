@@ -42,7 +42,9 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-4 bg-linear-to-r from-primary/95 to-info/50">
         <form onSubmit={handleLogin}>
           <fieldset className="fieldset bg-base-100/80 backdrop-blur border-base-300 rounded-box w-xs border p-4">
-            <legend className="fieldset-legend">Login</legend>
+            <div className="text-center font-bold text-xl mb-4 opacity-85">
+              Login
+            </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
             <label className="label">username</label>
             <input
