@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router";
 import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { socket } from "../lib/socket";
+import { parseRoomParam, buildRoomPath } from "../helpers/roomId";
 
 interface Todo {
   roomId: string;
@@ -13,9 +14,7 @@ interface Todo {
 
 export default function CreateTodoPage() {
   const { id, todoId } = useParams<{ id: string; todoId: string }>();
-
-  const roomName = id?.split("-")[0] ?? "";
-  const roomId = id?.split("-")[1] ?? "";
+  const { roomName, roomId } = parseRoomParam(id);
 
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
@@ -84,7 +83,7 @@ export default function CreateTodoPage() {
       });
 
       socket.emit("todos_changed");
-      navigate(`/room/${roomName}-${roomId}`);
+      navigate(`/room/${buildRoomPath(roomName, roomId)}`);
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
       const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
@@ -121,7 +120,7 @@ export default function CreateTodoPage() {
             {todoId ? "Edit" : "Create"} Todo
           </button>
           <Link
-            to={`/room/${roomName}-${roomId}`}
+            to={`/room/${buildRoomPath(roomName, roomId)}`}
             className="btn btn-outline mt-2"
           >
             ← Back

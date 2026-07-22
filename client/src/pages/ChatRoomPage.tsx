@@ -4,6 +4,7 @@ import axios from "axios";
 import { socket } from "../lib/socket.ts";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatRoomsList from "../components/ChatRoomList";
+import { parseRoomParam } from "../helpers/roomId";
 
 export interface IMessage {
   _id: string;
@@ -19,8 +20,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ChatRoomPage() {
   const { id } = useParams<{ id: string }>();
-  const roomName = id?.split("-")[0] ?? "";
-  const roomId = id?.split("-")[1] ?? "";
+  const { roomName, roomId } = parseRoomParam(id);
 
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [loading, setLoading] = useState(true);

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import Swal from "sweetalert2";
 import { socket } from "../lib/socket";
+import { parseRoomParam, buildRoomPath } from "../helpers/roomId";
 
 interface User {
   _id: string;
@@ -19,9 +20,7 @@ interface Member {
 
 export default function InviteMemberPage() {
   const { id } = useParams<{ id: string }>();
-
-  const roomName = id?.split("-")[0] ?? "";
-  const roomId = id?.split("-")[1] ?? "";
+  const { roomName, roomId } = parseRoomParam(id);
 
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<User[]>([]);
@@ -222,7 +221,7 @@ export default function InviteMemberPage() {
         </div>
 
         <Link
-          to={`/room/${roomName}-${roomId}`}
+          to={`/room/${buildRoomPath(roomName, roomId)}`}
           className="btn btn-outline mt-4 w-full"
         >
           Back to Room

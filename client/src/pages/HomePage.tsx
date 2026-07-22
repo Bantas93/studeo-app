@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { socket } from "../lib/socket";
+import { buildRoomPath } from "../helpers/roomId";
 
 interface ICreator {
   username: string;
@@ -129,7 +130,7 @@ export default function HompePage() {
     setJoiningRoomId(roomId);
 
     if (isMember) {
-      navigate(`/room/${roomName}-${roomId}`);
+      navigate(`/room/${buildRoomPath(roomName, roomId)}`);
     }
 
     try {
@@ -153,7 +154,7 @@ export default function HompePage() {
         );
       }
 
-      navigate(`/room/${roomName}-${roomId}`);
+      navigate(`/room/${buildRoomPath(roomName, roomId)}`);
     } catch {
       Swal.fire({
         title: "Gagal bergabung ke room",

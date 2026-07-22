@@ -3,6 +3,7 @@ import type { IMessage } from "../pages/ChatRoomPage";
 import { Link } from "react-router";
 import { socket } from "../lib/socket";
 import ChatBubbles from "./ChatBubbles.tsx";
+import { buildRoomPath } from "../helpers/roomId";
 
 interface IProps {
   roomId: string;
@@ -134,7 +135,7 @@ export default function ChatRoomsList({
             <span className="text-xs font-extralight">#{roomId}</span>
           </span>
           <Link
-            to={`/room/calling/${roomName}-${roomId}`}
+            to={`/room/calling/${buildRoomPath(roomName, roomId)}`}
             className="btn btn-primary btn-sm"
           >
             Video/Voice Call

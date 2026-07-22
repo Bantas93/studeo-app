@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { socket } from "../lib/socket";
 import Markdown from "react-markdown";
+import { buildRoomPath } from "../helpers/roomId";
 
 interface IProps {
   roomId: string;
@@ -127,13 +128,13 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2">
           <Link
-            to={`/room/${roomName}-${_roomId}/invite/member`}
+            to={`/room/${buildRoomPath(roomName, _roomId)}/invite/member`}
             className="btn btn-primary btn-sm"
           >
             Members
           </Link>
           <Link
-            to={`/room/${roomName}-${_roomId}/schedule`}
+            to={`/room/${buildRoomPath(roomName, _roomId)}/schedule`}
             className="btn btn-outline btn-sm w-full"
           >
             + Schedule
@@ -141,7 +142,7 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
         </div>
 
         <Link
-          to={`/room/${roomName}-${_roomId}/create/todo`}
+          to={`/room/${buildRoomPath(roomName, _roomId)}/create/todo`}
           className="btn btn-outline btn-sm w-full"
         >
           Create Todo
@@ -175,7 +176,7 @@ export default function ChatSidebar({ roomId: _roomId, roomName }: IProps) {
               >
                 <div className="absolute top-1 right-1 flex gap-1">
                   <Link
-                    to={`/room/${roomName}-${_roomId}/edit/todo/${todo._id}`}
+                    to={`/room/${buildRoomPath(roomName, _roomId)}/edit/todo/${todo._id}`}
                     className="btn btn-ghost btn-xs text-xs"
                   >
                     📝

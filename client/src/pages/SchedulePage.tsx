@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import Swal from "sweetalert2";
+import { parseRoomParam, buildRoomPath } from "../helpers/roomId";
 
 interface ISchedule {
   _id: string;
@@ -12,9 +13,7 @@ interface ISchedule {
 
 export default function SchedulePage() {
   const { id } = useParams<{ id: string }>();
-
-  const roomName = id?.split("-")[0] ?? "";
-  const roomId = id?.split("-")[1] ?? "";
+  const { roomName, roomId } = parseRoomParam(id);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -159,7 +158,7 @@ export default function SchedulePage() {
                 + Create Schedule
               </button>
               <Link
-                to={`/room/${roomName}-${roomId}`}
+                to={`/room/${buildRoomPath(roomName, roomId)}`}
                 className="btn btn-outline mt-2"
               >
                 ← Back

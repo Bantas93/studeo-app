@@ -12,6 +12,7 @@ import {
   useMaybeTrackRefContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
+import { parseRoomParam, buildRoomPath } from "../helpers/roomId";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
@@ -105,8 +106,7 @@ function RoomGrid({ mode }: { mode: CallMode }) {
 export default function CallingPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const roomName = id?.split("-")[0] ?? "";
-  const roomId = id?.split("-")[1] ?? "";
+  const { roomName, roomId } = parseRoomParam(id);
   const [searchParams] = useSearchParams();
   const mode: CallMode =
     searchParams.get("mode") === "voice" ? "voice" : "video";
@@ -151,7 +151,7 @@ export default function CallingPage() {
   }, [roomId, token, currentUsername]);
 
   const handleDisconnected = () => {
-    navigate(`/room/${roomName}-${roomId}`);
+    navigate(`/room/${buildRoomPath(roomName, roomId)}`);
   };
 
   if (connecting) {
@@ -169,7 +169,7 @@ export default function CallingPage() {
         <p className="text-error text-lg">{error || "Token tidak tersedia"}</p>
         <button
           className="btn btn-outline"
-          onClick={() => navigate(`/room/${roomName}-${roomId}`)}
+          onClick={() => navigate(`/room/${buildRoomPath(roomName, roomId)}`)}
         >
           Kembali ke Room
         </button>
