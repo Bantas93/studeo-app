@@ -1,5 +1,8 @@
-import { Outlet } from "react-router";
+import { Navigate, Outlet } from "react-router";
 
 export default function AuthLayout() {
+  if (localStorage.getItem("access_token")) {
+    return <Navigate to={"/homepage"} />;
+  }
   return <Outlet />;
 }

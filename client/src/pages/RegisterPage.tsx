@@ -4,18 +4,19 @@ import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import studeoLogo from "../assets/studeo_logo_v4.svg";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const handleLogin = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     try {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/users/login`,
-        { username, password },
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/register`,
+        { username, email, password },
         {
           headers: {
             "Content-Type": "application/json",
@@ -23,12 +24,11 @@ export default function LoginPage() {
         },
       );
 
-      localStorage.setItem("access_token", data.access_token);
       Swal.fire({
-        title: "Login Succesful",
+        title: "Register Succesful",
         icon: "success",
       });
-      navigate("/homepage");
+      navigate("/");
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message: string }>;
       const msg = axiosError.response?.data?.message ?? "Terjadi kesalahan";
@@ -39,11 +39,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
+      {/* Left: Form */}
       <div className="flex-1 flex items-center justify-center p-4 bg-linear-to-r from-primary/95 to-info/50">
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <fieldset className="fieldset bg-base-100/80 backdrop-blur border-base-300 rounded-box w-xs border p-4">
             <div className="text-center font-bold text-xl mb-4 opacity-85">
-              Login
+              Register
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
             <label className="label">username</label>
@@ -52,6 +53,14 @@ export default function LoginPage() {
               className="input"
               placeholder="your username"
               onChange={(e) => setUsername(e.target.value)}
+            />
+
+            <label className="label">email</label>
+            <input
+              type="text"
+              className="input"
+              placeholder="your email"
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <label className="label">Password</label>
@@ -63,11 +72,11 @@ export default function LoginPage() {
             />
 
             <button type="submit" className="btn btn-primary mt-4">
-              Login
+              Register
             </button>
             <p className="text-center mt-4">
-              Dont have account? register{" "}
-              <Link to={"/register"} className="link link-primary">
+              Have account? Login{" "}
+              <Link to={"/"} className="link link-primary">
                 Here
               </Link>
             </p>
@@ -75,6 +84,7 @@ export default function LoginPage() {
         </form>
       </div>
 
+      {/* Right: Brand */}
       <div className="hidden lg:flex lg:w-3/5 bg-linear-to-bl from-primary to-primary-focus items-center justify-center p-12">
         <div className="flex items-center gap-1">
           <img src={studeoLogo} alt="STUDEO" className="w-42 -me-8" />
@@ -83,7 +93,7 @@ export default function LoginPage() {
               STUDEO
             </h1>
             <p className="text-lg text-white/90 mt-1 animate-bounce">
-              Ruang belajar dengan notulency rapat dari AI
+              Learn. Collaborate. Succeed.
             </p>
           </div>
         </div>
